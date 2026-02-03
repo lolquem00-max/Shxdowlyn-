@@ -1,12 +1,12 @@
 const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } = (await import("@whiskeysockets/baileys"))
+import qrcode from "qrcode"
+import NodeCache from "node-cache"
 import fs from "fs"
 import path from "path"
 import pino from 'pino'
 import chalk from 'chalk'
 import util from 'util'
 import * as ws from 'ws'
-import qrcode from "qrcode"
-import NodeCache from "node-cache"
 const { spawn, exec } = await import('child_process') // <-- removed `child`
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
@@ -43,7 +43,6 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
   if (!fs.existsSync(pathJadiBot)){
     fs.mkdirSync(pathJadiBot, { recursive: true })
   }
-
   JBOptions.pathJadiBot = pathJadiBot
   JBOptions.m = m
   JBOptions.conn = conn
@@ -51,7 +50,8 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
   JBOptions.usedPrefix = usedPrefix
   JBOptions.command = command
   JBOptions.fromCommand = true
-  JadiBot(JBOptions)  // guardar timestamp correctamente
+  jadiBot(JBOptions)
+  // guardar timestamp correctamente
   if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
   global.db.data.users[m.sender].Subs = Date.now()
 }
@@ -60,7 +60,7 @@ handler.tags = ['serbot']
 handler.command = ['qr', 'code']
 export default handler 
 
-export async function JadiBot(options) {
+export async function jadiBot(options) {
   let { pathJadiBot, m, conn, args, usedPrefix, command } = options
   args = Array.isArray(args) ? args : (typeof args === 'string' && args.trim() ? args.trim().split(/\s+/) : [])
   // Detectar si es modo code
@@ -82,7 +82,7 @@ export async function JadiBot(options) {
 
   const pathCreds = path.join(pathJadiBot, "creds.json")
   if (!fs.existsSync(pathJadiBot)){
-    fs.mkdirSync(pathYukiJadiBot, { recursive: true })
+    fs.mkdirSync(pathJadiBot, { recursive: true })
   }
 
   // Si hay un valor de código (base64), intentar cargarlo
@@ -108,7 +108,7 @@ export async function JadiBot(options) {
       let { version, isLatest } = await fetchLatestBaileysVersion()
       const msgRetry = (MessageRetryMap) => { }
       const msgRetryCache = new NodeCache()
-      const { state, saveState, saveCreds } = await useMultiFileAuthState(pathYukiJadiBot)
+      const { state, saveState, saveCreds } = await useMultiFileAuthState(pathJadiBot)
 
       const connectionOptions = {
         logger: pino({ level: "fatal" }),
@@ -246,7 +246,7 @@ export async function JadiBot(options) {
             try {
               if (options.fromCommand) {
                 await conn.sendMessage(`${path.basename(pathJadiBot)}@s.whatsapp.net`, { 
-                  text: '⚠︎ Sesión incorrecta.\n\n> 🌪️ Vuelva a intentar nuevamente volver a ser *SUB-BOT*.' 
+                  text: '⚠︎ Sesión incorrecta.\n\n> ☁︎ Vuelva a intentar nuevamente volver a ser *SUB-BOT*.' 
                 }, { quoted: m || null })
               }
             } catch (error) {
@@ -257,7 +257,7 @@ export async function JadiBot(options) {
           if (reason === 500) {
             console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
             if (options.fromCommand) {
-              await conn.sendMessage(`${path.basename(pathadiBot)}@s.whatsapp.net`, { 
+              await conn.sendMessage(`${path.basename(pathJadiBot)}@s.whatsapp.net`, { 
                 text: '⚠︎ Conexión perdida.\n\n> ☁︎ Intenté conectarse manualmente para volver a ser *SUB-BOT*' 
               }, { quoted: m || null })
             }
@@ -269,7 +269,7 @@ export async function JadiBot(options) {
           }
           if (reason === 403) {
             console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-            fs.rmdirSync(pathYukiJadiBot, { recursive: true })
+            fs.rmdirSync(pathJadiBot, { recursive: true })
           }
         }
         if (global.db.data == null) loadDatabase()
@@ -329,7 +329,7 @@ export async function JadiBot(options) {
       creloadHandler(false)
 
     } catch (error) {
-      console.error('Error en JadiBot:', error)
+      console.error('Error en jadiBot:', error)
       if (m) {
         conn.reply(m.chat, `❌ Error al iniciar el Sub-Bot: ${error.message}`, m)
       }
