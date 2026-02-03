@@ -12,19 +12,19 @@ Bienvenido al repositorio de Akina Wa, un bot de WhatsApp inspirado en la estét
 ## Description
 Akina Wa Es un bot de WhatsApp diseñado para gestionar comandos con un toque de temática neko, incluyendo el envío de stickers, memes y respuestas informativas. Desarrollado con Node.js y whatsapp-web.js, su objetivo es proporcionar un entorno bueno y confiable.
 
-## Installation
-To set up and run the bot locally (requires Node.js):
+## Instalación 
+Para configurar y ejecutar el bot localmente (requiere Node.js):
 
-1. Clone the repository:  
+1. Clonar repositorio:  
    ```bash
    git clone https://github.com/Dev-FelixOfc/AkinaWa-Bot.git
    ```
-2. Install dependencies:  
+2. Instalar dependencias:  
    ```bash
    npm install
    ```
-3. Configure your WhatsApp account by scanning the QR code generated during setup.
-4. Start the bot:  
+3. Configura tu cuenta de WhatsApp escaneando el código QR generado durante la configuración.
+4. Iniciar Bot:  
    ```bash
    npm start
    ```
