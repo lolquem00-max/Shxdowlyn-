@@ -269,7 +269,7 @@ const comandoFolder = global.__dirname(join(__dirname, './comandos/index'))
 const comandoFilter = (filename) => /\.js$/.test(filename)
 global.comandos = {}
 async function filesInit() {
-for (const filename of readdirSync(pluginFolder).filter(comandoFilter)) {
+for (const filename of readdirSync(comandoFolder).filter(comandoFilter)) {
 try {
 const file = global.__filename(join(comandoFolder, filename))
 const module = await import(file)
