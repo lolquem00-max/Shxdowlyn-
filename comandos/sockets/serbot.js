@@ -256,7 +256,7 @@ for (const value of Object.values(global.ch)) {
 if (typeof value === 'string' && value.endsWith('@newsletter')) {
 await sock.newsletterFollow(value).catch(() => {})
 }}} false
-return true;
+
 }
 creloadHandler(false)
 })
