@@ -9,7 +9,7 @@ import util from 'util'
 import * as ws from 'ws'
 const { spawn, exec } = await import('child_process') // <-- removed `child`
 const { CONNECTING } = ws
-import { makeWASocket } from '../configuraciones/simple.js'
+import { makeWASocket } from './configuraciones/simple.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
