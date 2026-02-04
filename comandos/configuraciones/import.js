@@ -1,4 +1,4 @@
-import Helper from './manejador.js'
+import manejador.js from './manejador.js'
 
 const WORKER_DIR = Helper.__dirname(import.meta.url, false)
     module = Helper.__filename(module)
