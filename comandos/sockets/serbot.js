@@ -40,17 +40,17 @@ return m.reply(`${emoji2} Se ha alcanzado o superado el límite de *Sub-Bots* ac
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id = `${who.split`@`[0]}`
 let pathRubyJadiBot = path.join(`./${jadi}/`, id)
-if (!fs.existsSync(pathRubyJadiBot)){
-fs.mkdirSync(pathRubyJadiBot, { recursive: true })
+if (!fs.existsSync(pathJadiBot)){
+fs.mkdirSync(pathJadiBot, { recursive: true })
 }
-RubyJBOptions.pathRubyJadiBot = pathRubyJadiBot
-RubyJBOptions.m = m
-RubyJBOptions.conn = conn
-RubyJBOptions.args = args
-RubyJBOptions.usedPrefix = usedPrefix
-RubyJBOptions.command = command
-RubyJBOptions.fromCommand = true
-RubyJadiBot(RubyJBOptions)
+JBOptions.pathJadiBot = pathJadiBot
+JBOptions.m = m
+JBOptions.conn = conn
+JBOptions.args = args
+JBOptions.usedPrefix = usedPrefix
+JBOptions.command = command
+JBOptions.fromCommand = true
+JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
 handler.help = ['qr', 'code']
@@ -59,8 +59,8 @@ handler.command = ['qr', 'code']
 export default handler 
 
 
-export async function RubyJadiBot(options) {
-let { pathRubyJadiBot, m, conn, args, usedPrefix, command } = options
+export async function JadiBot(options) {
+let { pathJadiBot, m, conn, args, usedPrefix, command } = options
 if (command === 'code') {
 command = 'qr'; 
 args.unshift('code')}
@@ -71,9 +71,9 @@ args[0] = args[0].replace(/^--code$|^code$/, "").trim()
 if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
-const pathCreds = path.join(pathRubyJadiBot, "creds.json")
-if (!fs.existsSync(pathRubyJadiBot)){
-fs.mkdirSync(pathRubyJadiBot, { recursive: true })}
+const pathCreds = path.join(pathJadiBot, "creds.json")
+if (!fs.existsSync(pathJadiBot)){
+fs.mkdirSync(pathJadiBot, { recursive: true })}
 try {
 args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
 } catch {
@@ -88,7 +88,7 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathRubyJadiBot)
+const { state, saveState, saveCreds } = await useMultiFileAuthState(pathJadiBot)
 
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
@@ -96,7 +96,7 @@ printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Ruby Hoshino (Sub Bot)', 'Chrome','2.0.0'],
+browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Akina (Sub Bot)', 'Chrome','2.0.0'],
 version: version,
 generateHighQualityLinkPreview: true
 };
@@ -120,7 +120,7 @@ setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 45000)
 return
 } 
 if (qr && mcode) {
-    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN");
+    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RubyChan");
 
     const interactiveButtons = [{
         name: "cta_copy",
@@ -172,48 +172,48 @@ global.conns.splice(i, 1)
 const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
 if (connection === 'close') {
 if (reason === 428) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) fue cerrada inesperadamente. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathJadiBot)}) fue cerrada inesperadamente. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 await creloadHandler(true).catch(console.error)
 }
 if (reason === 408) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 await creloadHandler(true).catch(console.error)
 }
 if (reason === 440) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 try {
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathRubyJadiBot)}@s.whatsapp.net`, {text : '*HEMOS DETECTADO UNA NUEVA SESIÓN, BORRE LA NUEVA SESIÓN PARA CONTINUAR*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*' }, { quoted: m || null }) : ""
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathJadiBot)}@s.whatsapp.net`, {text : '*HEMOS DETECTADO UNA NUEVA SESIÓN, BORRE LA NUEVA SESIÓN PARA CONTINUAR*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*' }, { quoted: m || null }) : ""
 } catch (error) {
 console.error(chalk.bold.yellow(`Error 440 no se pudo enviar mensaje a: +${path.basename(pathRubyJadiBot)}`))
 }}
 if (reason == 405 || reason == 401) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) fue cerrada. Credenciales no válidas o dispositivo desconectado manualmente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄Doç┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathJadiBot)}) fue cerrada. Credenciales no válidas o dispositivo desconectado manualmente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄Doç┄┄┄┄┄┄⟡`))
 try {
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathRubyJadiBot)}@s.whatsapp.net`, {text : '*SESIÓN PENDIENTE*\n\n> *INTENTÉ NUEVAMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathJadiBot)}@s.whatsapp.net`, {text : '*SESIÓN PENDIENTE*\n\n> *INTENTÉ NUEVAMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
 } catch (error) {
-console.error(chalk.bold.yellow(`Error 405 no se pudo enviar mensaje a: +${path.basename(pathRubyJadiBot)}`))
+console.error(chalk.bold.yellow(`Error 405 no se pudo enviar mensaje a: +${path.basename(pathJadiBot)}`))
 }
-fs.rmdirSync(pathRubyJadiBot, { recursive: true })
+fs.rmdirSync(pathJadiBot, { recursive: true })
 }
 if (reason === 500) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathRubyJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathRubyJadiBot)}@s.whatsapp.net`, {text : '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathJadiBot)}@s.whatsapp.net`, {text : '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
 return creloadHandler(true).catch(console.error)
 }
 if (reason === 515) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathRubyJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 await creloadHandler(true).catch(console.error)
 }
 if (reason === 403) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathRubyJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-fs.rmdirSync(pathRubyJadiBot, { recursive: true })
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+fs.rmdirSync(pathJadiBot, { recursive: true })
 }}
 if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
 if (!global.db.data?.users) loadDatabase()
 let userName, userJid 
 userName = sock.authState.creds.me.name || 'Anónimo'
-userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
+userJid = sock.authState.creds.me.jid || `${path.basename(pathJadiBot)}@s.whatsapp.net`
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathRubyJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺【• CONECTADO •】⸺⸺⸺❒`))
 sock.isInit = true
 global.conns.push(sock)
