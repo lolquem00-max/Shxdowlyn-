@@ -158,7 +158,7 @@ var handler = async (m, { conn, usedPrefix, command }) => {
     }
 
     if (totalErrors === 0) {
-      response += '❀ ¡Todo está en orden! No se detectaron errores de sintaxis ni parseo en los archivos revisados.\n'
+      response += '👾 ¡Todo está en orden! No se detectaron errores de sintaxis ni parseo en los archivos revisados.\n'
       await conn.reply(m.chat, response, m)
       try { await m.react?.('✅') } catch {}
       return
