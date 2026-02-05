@@ -1,4 +1,4 @@
-import { startSubBot } from '../../lib/subs.js';
+import { startSubBot } from '../../configuraciones/serbot.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url'
