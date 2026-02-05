@@ -35,7 +35,7 @@ global.APIs = {
 // Dueños del bot (números de teléfono como strings en array)
 global.owner = [
   '573107400303',
-  '18094374392',
+  '573235915041',
   '18293527611',
 ];
 
