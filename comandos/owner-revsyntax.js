@@ -9,7 +9,7 @@ const ownerFile = path.join(__dirname, '..', 'jsons', 'owner.json')
 const projectRoot = path.resolve(__dirname, '..') // ajuste si tu index está en otra carpeta
 
 // Excluir carpetas pesadas / irrelevantes al buscar errores
-const DEFAULT_EXCLUDES = ['node_modules', '.git', 'sessions', 'sessions/Principal', 'tmp', 'coverage', '.github', '.vscode', 'dist']
+const DEFAULT_EXCLUDES = ['node_modules', '.git', 'sessions', 'sessions', 'temporal', 'coverage', '.github', '.vscode', 'dist']
 
 /**
  * Recorre recursivamente un directorio y devuelve archivos con las extensiones dadas
