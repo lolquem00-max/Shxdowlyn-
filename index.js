@@ -265,44 +265,55 @@ if (readBotPath.includes(creds)) {
 JadiBot({pathJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
 }}}}
 
+global.plugins = {}
 const comandoFolder = join(__dirname, './comandos')
 const comandoFilter = (filename) => /\.js$/.test(filename)
 global.comandos = {}
 async function filesInit() {
-for (const filename of readdirSync(comandoFolder).filter(comandoFilter)) {
-try {
-const file = global.__filename(join(comandoFolder, filename))
-const module = await import(file)
-global.comandos[filename] = module.default || module
-} catch (e) {
-conn.logger.error(e)
-delete global.comandos[filename]
-}}}
-filesInit().then((_) => Object.keys(global.comandos)).catch(console.error)
+  for (const filename of readdirSync(comandoFolder).filter(comandoFilter)) {
+    try {
+      const file = global.__filename(join(comandoFolder, filename))
+      const module = await import(file)
+      global.plugins[filename] = module.default || module
+      global.comandos[filename] = module.default || module
+    } catch (e) {
+      conn.logger.error(e)
+      delete global.plugins[filename]
+      delete global.comandos[filename]
+    }
+  }
+}
+filesInit().then((_) => Object.keys(global.plugins)).catch(console.error)
 
 global.reload = async (_ev, filename) => {
-if (comandoFilter(filename)) {
-const dir = global.__filename(join(comandoFolder, filename), true);
-if (filename in global.comandos) {
-if (existsSync(dir)) conn.logger.info(` updated command - '${filename}'`)
-else {
-conn.logger.warn(`deleted command - '${filename}'`)
-return delete global.comandos[filename]
-}} else conn.logger.info(`new command - '${filename}'`)
-const err = syntaxerror(readFileSync(dir), filename, {
-sourceType: 'module',
-allowAwaitOutsideFunction: true,
-});
-if (err) conn.logger.error(`syntax error while loading '${filename}'\n${format(err)}`)
-else {
-try {
-const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
-global.comandos[filename] = module.default || module;
-} catch (e) {
-conn.logger.error(`error require Command '${filename}\n${format(e)}'`)
-} finally {
-global.comandos = Object.fromEntries(Object.entries(global.comandos).sort(([a], [b]) => a.localeCompare(b)))
-}}}}
+  if (comandoFilter(filename)) {
+    const dir = global.__filename(join(comandoFolder, filename), true);
+    if (filename in global.comandos) {
+      if (existsSync(dir)) conn.logger.info(` updated command - '${filename}'`)
+      else {
+        conn.logger.warn(`deleted command - '${filename}'`)
+        delete global.plugins[filename]
+        return delete global.comandos[filename]
+      }
+    } else conn.logger.info(`new command - '${filename}'`)
+    const err = syntaxerror(readFileSync(dir), filename, {
+      sourceType: 'module',
+      allowAwaitOutsideFunction: true,
+    });
+    if (err) conn.logger.error(`syntax error while loading '${filename}'\n${format(err)}`)
+    else {
+      try {
+        const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
+        global.plugins[filename] = module.default || module
+        global.comandos[filename] = module.default || module;
+      } catch (e) {
+        conn.logger.error(`error require Command '${filename}\n${format(e)}'`)
+      } finally {
+        global.comandos = Object.fromEntries(Object.entries(global.comandos).sort(([a], [b]) => a.localeCompare(b)))
+      }
+    }
+  }
+}
 Object.freeze(global.reload)
 watch(comandoFolder, global.reload)
 await global.reloadHandler()
