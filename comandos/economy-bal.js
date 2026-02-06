@@ -15,7 +15,7 @@ function normalizeNumber(raw) {
 function ensureDb() {
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
   if (!fs.existsSync(dbFile)) {
-    const init = { "8094374392": { balance: 999999, lastDaily: 0, streak: 0 } }
+    const init = { "573235915041": { balance: 999999, lastDaily: 0, streak: 0 } }
     fs.writeFileSync(dbFile, JSON.stringify(init, null, 2))
   } else {
     // Normalizar claves si es necesario (migración simple)
