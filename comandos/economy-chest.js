@@ -17,14 +17,17 @@ function ensureDb() {
   if (!fs.existsSync(dbFile)) {
     const init = {
       "573235915041": {
-        balance: 999999,
+        wallet: 999999,
+        bank: 0,
         lastDaily: 0,
         streak: 0,
         diamonds: 0,
         coal: 0,
         gold: 0,
         lastCrime: 0,
-        lastChest: 0
+        lastChest: 0,
+        lastAction: 0,
+        lastRob: 0
       }
     }
     fs.writeFileSync(dbFile, JSON.stringify(init, null, 2))
