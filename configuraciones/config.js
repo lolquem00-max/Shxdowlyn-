@@ -10,6 +10,12 @@ watchFile(file, () => {
   import(`\( {file}?update= \){Date.now()}`);
 });
 
+// #_Owner List_#
+global.owner = [
+  '18094374392',
+  '573107400303',
+];
+
 // #_Bot Manager_#
 
 global.botname = 'Akina Wa Bot';
