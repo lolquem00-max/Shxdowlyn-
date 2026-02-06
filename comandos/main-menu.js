@@ -53,7 +53,15 @@ Aǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
 *❏ #crime • #crimen*
 > Comenté un crimen y gana recompensas.
 *❏ #baltop • #topbalance*
-> Mira el top de usuarios con más Coins.`
+> Mira el top de usuarios con más Coins.
+*❏ #withdraw • #givechar • #regcoins*
+> Regala coins a tus amigos.
+*❏ #work • #trabajar • #trabajo*
+> Trabaja cada 5 minutos y gana coins.
+*❏ #deposit • #dep • #depositar*
+> Deposita tus coins en el banco.
+*❏ #rob • #robar*
+> Roba a otros usuarios para ganar más coins.`
 
     await conn.sendMessage(m.chat, {
       text: menu,
