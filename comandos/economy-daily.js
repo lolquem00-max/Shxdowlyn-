@@ -1,3 +1,4 @@
+// comandos/economy-daily.js
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -14,42 +15,74 @@ function normalizeNumber(raw) {
 }
 
 // Asegura existencia de la carpeta y archivo con estructura inicial.
-// También normaliza claves (quita prefijos +) para evitar problemas de lookup.
-function ensureDb() {
-  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
+//Sync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
   if (!fs.existsSync(dbFile)) {
-    const init = { "573235915041": { balance: 999999, lastDaily: 0, streak: 0 } }
+    const init = {
+      "573235915041": {
+        wallet: 999999,
+        bank: 0,
+        lastDaily: 0,
+        streak: 0,
+        diamonds: 0,
+        coal: 0,
+        gold: 0,
+        lastCrime: 0,
+        lastChest: 0,
+        lastAction: 0,
+        lastRob: 0
+      }
+    }
     fs.writeFileSync(dbFile, JSON.stringify(init, null, 2))
     return
   }
-  // Si existe, normalizar claves (migración automática si hay claves con +)
-  const raw = fs.readFileSync(dbFile, 'utf8')
+
+  // Si existe, intentar normalizar claves y migrar campos antiguos
+  let raw = fs.readFileSync(dbFile, 'utf8')
   try {
     const parsed = JSON.parse(raw || '{}')
     const normalized = {}
     for (const [key, val] of Object.entries(parsed || {})) {
       const norm = (key || '').toString().replace(/\D/g, '')
       if (!norm) continue
-      if (!normalized[norm]) {
-        normalized[norm] = {
-          balance: Number(val.balance || 0),
-          lastDaily: Number(val.lastDaily || 0),
-          streak: Number(val.streak || 0)
-        }
-      } else {
-        // Si hay colisión, sumar balance y tomar los maximos de timestamps/streak
-        normalized[norm].balance = (normalized[norm].balance || 0) + Number(val.balance || 0)
-        normalized[norm].lastDaily = Math.max(normalized[norm].lastDaily || 0, Number(val.lastDaily || 0))
-        normalized[norm].streak = Math.max(normalized[norm].streak || 0, Number(val.streak || 0))
+      // Si val es primitivo o no objeto, crear objeto base
+      const v = (val && typeof val === 'object') ? val : {}
+      // migración: balance -> wallet
+      const wallet = Number(v.wallet ?? v.balance ?? 0)
+      const bank = Number(v.bank ?? 0)
+      normalized[norm] = {
+        wallet: wallet,
+        bank: bank,
+        lastDaily: Number(v.lastDaily ?? 0),
+        streak: Number(v.streak ?? 0),
+        diamonds: Number(v.diamonds ?? 0),
+        coal: Number(v.coal ?? 0),
+        gold: Number(v.gold ?? 0),
+        lastCrime: Number(v.lastCrime ?? 0),
+        lastChest: Number(v.lastChest ?? 0),
+        lastAction: Number(v.lastAction ?? 0),
+        lastRob: Number(v.lastRob ?? 0)
       }
     }
-    // Reescribir sólo si la forma normalizada difiere de la leída (previene escrituras innecesarias)
     const normString = JSON.stringify(normalized, null, 2)
     if (normString !== raw) fs.writeFileSync(dbFile, normString)
   } catch (e) {
-    // Si JSON corrupto: respaldar y crear uno limpio
+    // Si JSON corrupto: respaldar y crear uno limpio con el número requerido
     try { fs.renameSync(dbFile, dbFile + '.corrupt.' + Date.now()) } catch {}
-    const init = { "8094374392": { balance: 999999, lastDaily: 0, streak: 0 } }
+    const init = {
+      "573235915041": {
+        wallet: 999999,
+        bank: 0,
+        lastDaily: 0,
+        streak: 0,
+        diamonds: 0,
+        coal: 0,
+        gold: 0,
+        lastCrime: 0,
+        lastChest: 0,
+        lastAction: 0,
+        lastRob: 0
+      }
+    }
     fs.writeFileSync(dbFile, JSON.stringify(init, null, 2))
   }
 }
@@ -60,9 +93,23 @@ function readDb() {
   try {
     return JSON.parse(raw || '{}')
   } catch (e) {
-    // Si por alguna razón vuelve a fallar, recuperar archivo corrupto y crear init
+    // Si por alguna razón vuelve a fallar, respaldar y crear init
     try { fs.renameSync(dbFile, dbFile + '.corrupt.' + Date.now()) } catch {}
-    const init = { "8094374392": { balance: 999999, lastDaily: 0, streak: 0 } }
+    const init = {
+      "573235915041": {
+        wallet: 999999,
+        bank: 0,
+        lastDaily: 0,
+        streak: 0,
+        diamonds: 0,
+        coal: 0,
+        gold: 0,
+        lastCrime: 0,
+        lastChest: 0,
+        lastAction: 0,
+        lastRob: 0
+      }
+    }
     fs.writeFileSync(dbFile, JSON.stringify(init, null, 2))
     return init
   }
@@ -96,7 +143,19 @@ var handler = async (m, { conn }) => {
 
     // Asegurarse de la entrada del usuario (usar clave normalizada sin +)
     if (!db[sender]) {
-      db[sender] = { balance: 0, lastDaily: 0, streak: 0 }
+      db[sender] = {
+        wallet: 0,
+        bank: 0,
+        lastDaily: 0,
+        streak: 0,
+        diamonds: 0,
+        coal: 0,
+        gold: 0,
+        lastCrime: 0,
+        lastChest: 0,
+        lastAction: 0,
+        lastRob: 0
+      }
     }
 
     const user = db[sender]
@@ -126,9 +185,10 @@ var handler = async (m, { conn }) => {
       user.streak = 1
     }
 
-    // Actualizar balance y timestamp
-    user.balance = (user.balance || 0) + reward
+    // Actualizar wallet (saldo fuera del banco) y timestamp
+    user.wallet = (user.wallet || 0) + reward
     user.lastDaily = now
+    user.lastAction = now
 
     // Guardar DB
     db[sender] = user
