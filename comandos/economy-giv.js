@@ -64,12 +64,12 @@ function writeDb(db) {
   fs.writeFileSync(dbFile, JSON.stringify(db, null, 2))
 }
 
-// Resolve target from: reply -> mention -> last arg numeric
-function resolveTargetForGive(m, parts) {
+// Resuelve objetivo para give: RESPUESTA -> MENCIÓN -> ÚLTIMO ARG
+function resolveTargetNorm(m, parts) {
   try {
     if (m?.quoted) {
       const q = m.quoted
-      const possible = (q.sender || q.participant || (q.key && (q.key.participant || q.key.remoteJid)))
+      const possible = q.sender || q.participant || (q.key && (q.key.participant || q.key.remoteJid)) || q.key && q.key.remoteJid
       if (possible) {
         const norm = normalizeNumber(possible)
         if (norm) return norm
@@ -84,8 +84,7 @@ function resolveTargetForGive(m, parts) {
 
   try {
     if (m?.mentionedJid && Array.isArray(m.mentionedJid) && m.mentionedJid.length) {
-      const norm = normalizeNumber(m.mentionedJid[0])
-      if (norm) return norm
+      return normalizeNumber(m.mentionedJid[0])
     }
   } catch (e) {}
 
@@ -98,6 +97,14 @@ function resolveTargetForGive(m, parts) {
   return null
 }
 
+function buildMentionJid(m, norm) {
+  if (!norm) return null
+  if (m?.mentionedJid && Array.isArray(m.mentionedJid) && m.mentionedJid.length) {
+    return m.mentionedJid[0]
+  }
+  return `${norm}@s.whatsapp.net`
+}
+
 var handler = async (m, { conn }) => {
   try {
     const db = readDb()
@@ -107,7 +114,7 @@ var handler = async (m, { conn }) => {
     if (!db[sender]) db[sender] = { wallet: 0, bank: 0, lastAction: 0 }
 
     const text = (m.text || m.body || '').trim()
-    const parts = text.split(/\s+/).slice(1) // amount and target (target may be last arg or reply/mention)
+    const parts = text.split(/\s+/).slice(1) // amount and maybe target
 
     if (parts.length < 1) {
       return conn.reply(m.chat, 'Uso: givechar <cantidad> <mención|número> o responde al usuario con: givechar <cantidad>\nEj: givechar 500 @usuario\nEj: givechar 500 573123456789\nO responde al mensaje del usuario: givechar 500', m)
@@ -118,9 +125,9 @@ var handler = async (m, { conn }) => {
       return conn.reply(m.chat, 'Cantidad inválida.', m)
     }
 
-    const target = resolveTargetForGive(m, parts)
-    if (!target) return conn.reply(m.chat, 'No se encontró el usuario destino. Menciona, escribe su número o responde a su mensaje.', m)
-    if (target === sender) return conn.reply(m.chat, 'No puedes regalarte a ti mismo.', m)
+    const targetNorm = resolveTargetNorm(m, parts)
+    if (!targetNorm) return conn.reply(m.chat, 'No se encontró el usuario destino. Menciona, escribe su número o responde a su mensaje.', m)
+    if (targetNorm === sender) return conn.reply(m.chat, 'No puedes regalarte a ti mismo.', m)
 
     if (!db[sender]) db[sender] = { wallet: 0, bank: 0, lastAction: 0 }
     const giver = db[sender]
@@ -132,18 +139,19 @@ var handler = async (m, { conn }) => {
       return conn.reply(m.chat, `*❁* No tienes *${amount}*\n\n> ¡Usa los comandos de economía para conseguir más Coins y poder darle a tus amigos!`, m)
     }
 
-    if (!db[target]) db[target] = { wallet: 0, bank: 0, lastAction: 0 }
+    if (!db[targetNorm]) db[targetNorm] = { wallet: 0, bank: 0, lastAction: 0 }
 
     giver.wallet = (giver.wallet || 0) - amount
-    db[target].wallet = (db[target].wallet || 0) + amount
+    db[targetNorm].wallet = (db[targetNorm].wallet || 0) + amount
     giver.lastAction = Date.now()
-    db[target].lastAction = Date.now()
+    db[targetNorm].lastAction = Date.now()
     db[sender] = giver
     writeDb(db)
 
-    const displayTarget = (m?.mentionedJid && m.mentionedJid[0]) ? m.mentionedJid[0] : `+${target}`
-
-    return conn.reply(m.chat, `*[❁]* Regalaste *${amount}* a ${displayTarget}.`, m)
+    const mentionJid = buildMentionJid(m, targetNorm)
+    const displayTag = `@${targetNorm}`
+    const replyText = `*[❁]* Regalaste *${amount}* a ${displayTag}.`
+    return conn.reply(m.chat, replyText, m, { mentions: mentionJid ? [mentionJid] : [] })
   } catch (err) {
     console.error(err)
     return conn.reply(m.chat, `⚠︎ Ocurrió un error en give: ${err.message || err}`, m)
