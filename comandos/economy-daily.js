@@ -86,15 +86,12 @@ function randomInt(min, max) {
 
 var handler = async (m, { conn }) => {
   try {
-    await m.react?.('🕒')
-
     // Cargar DB unificada
     const db = readDb()
 
     // Obtener y normalizar número del remitente
     const sender = normalizeNumber(m.sender || m.from || m.participant || '')
     if (!sender) {
-      try { await m.react?.('✖️') } catch {}
       return conn.reply(m.chat, '* No se pudo identificar tu número.', m)
     }
 
@@ -111,7 +108,6 @@ var handler = async (m, { conn }) => {
     if (user.lastDaily && (now - user.lastDaily) < COOLDOWN) {
       const remaining = COOLDOWN - (now - user.lastDaily)
       const { hours, minutes } = msToHourMinute(remaining)
-      try { await m.react?.('✖️') } catch {}
       return conn.reply(m.chat, `✿︎ Ya obtuviste tu daily de hoy, espera ${hours}h ${minutes}m para volver a reclamar.`, m)
     }
 
@@ -146,10 +142,8 @@ var handler = async (m, { conn }) => {
 
 Saldo actual: *${user.balance} coins*`
 
-    try { await m.react?.('✅') } catch {}
     return conn.reply(m.chat, message, m)
   } catch (err) {
-    try { await m.react?.('✖️') } catch {}
     console.error(err)
     return conn.reply(m.chat, `⚠︎ Ocurrió un error al procesar tu daily: ${err.message || err}`, m)
   }
@@ -157,7 +151,6 @@ Saldo actual: *${user.balance} coins*`
 
 handler.help = ['daily', 'diaro']
 handler.tags = ['economy']
-// Soporta triggers con o sin #
-handler.command = ['#daily', '#diario', '#diaro', 'daily', 'diario', 'diaro']
+handler.command = ['diario', 'daily']
 
 export default handler
