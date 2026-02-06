@@ -44,8 +44,10 @@ Aǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
 *»  ⊹ ˚୨ •(=^●ω●^=)• Economía* ⊹
 > ✎ Comandos de economía y Rpg para disfrutar con tus amigos.
 
-*❏ #daily*
-> Obtén una recompensa diaria.`
+*❏ #daily • #diario*
+> Obtén una recompensa diaria.
+*❏ #bal • #balance*
+> Mira cuántos coins tienes.`
 
     await conn.sendMessage(m.chat, {
       text: menu,
