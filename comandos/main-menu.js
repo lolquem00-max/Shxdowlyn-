@@ -47,7 +47,13 @@ Aǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
 *❏ #daily • #diario*
 > Obtén una recompensa diaria.
 *❏ #bal • #balance*
-> Mira cuántos coins tienes.`
+> Mira cuántos coins tienes.
+*❏ #chest • #cofre*
+> Obtén un cofre con recompensas cada 25 minutos.
+*❏ #crime • #crimen*
+> Comenté un crimen y gana recompensas.
+*❏ #baltop • #topbalance*
+> Mira el top de usuarios con más Coins.`
 
     await conn.sendMessage(m.chat, {
       text: menu,
