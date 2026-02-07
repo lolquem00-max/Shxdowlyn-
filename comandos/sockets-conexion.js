@@ -11,12 +11,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SESSIONS_ROOT = path.join(process.cwd(), 'jsons', 'sockets')
 const AUTH_ROOT = path.join(SESSIONS_ROOT, 'auth')
 const DB_PATH = path.join(SESSIONS_ROOT, 'JadiBot.json')
-const ATOMIC_SUFFIX = '.temporal' // <-- usamos '.temporal' en vez de '.tmp'
+const ATOMIC_SUFFIX = '.temporal' // usamos '.temporal' para escrituras atómicas
 if (!fs.existsSync(AUTH_ROOT)) fs.mkdirSync(AUTH_ROOT, { recursive: true })
 if (!fs.existsSync(SESSIONS_ROOT)) fs.mkdirSync(SESSIONS_ROOT, { recursive: true })
 if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({}, null, 2))
 
-// helpers DB (usa '.temporal' para escritura atómica)
+// helpers DB
 function readDB() {
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf8') || '{}'
@@ -31,7 +31,6 @@ function readDB() {
 function writeDB(db) {
   fs.writeFileSync(DB_PATH + ATOMIC_SUFFIX, JSON.stringify(db, null, 2))
   try { fs.renameSync(DB_PATH + ATOMIC_SUFFIX, DB_PATH) } catch (e) {
-    // fallback
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2))
   }
 }
@@ -66,7 +65,7 @@ function setSessionActiveInDB(socket, active = true) {
   return true
 }
 
-// imprime en consola en caja (usa el formato pedido)
+// print helpers
 function boxify(lines) {
   const top = '╔✿︎' + '═'.repeat(8) + '𑁍' + '═'.repeat(8) + '✿︎╗'
   const bottom = '╚✿︎' + '═'.repeat(8) + '𑁍' + '═'.repeat(8) + '✿︎╝'
@@ -93,12 +92,7 @@ function printSessionEvent({ action = 'Session creada en', number = 'unknown' })
   console.log(boxify(lines))
 }
 
-// util: genera 8 dígitos aleatorios
-function gen8Digits() {
-  return String(Math.floor(10000000 + Math.random() * 90000000))
-}
-
-// helpers para enviar mensajes/imagenes adaptables a distintas APIs de conn
+// helpers para mensajes
 async function sendText(conn, chat, text, quoted = null) {
   if (!conn) throw new Error('conn missing')
   if (typeof conn.reply === 'function') return conn.reply(chat, text, quoted)
@@ -162,7 +156,15 @@ async function makeTempSocket(sessionName) {
   return { sock, authDir }
 }
 
-// handler principal del comando
+// util: formatea el pairing code agrupando de 4 en 4 con guiones
+function formatPairingCode(secret) {
+  if (!secret || typeof secret !== 'string') return secret
+  const cleaned = secret.replace(/\s+/g, '')
+  const parts = cleaned.match(/.{1,4}/g) || [cleaned]
+  return parts.join('-')
+}
+
+// handler principal
 var handler = async (m, { conn }) => {
   try {
     const rawText = (m.text || m.body || '').trim()
@@ -181,6 +183,7 @@ var handler = async (m, { conn }) => {
     let finished = false
     const expireMs = isCode ? 45_000 : 60_000
 
+    // Enviar mensaje intro (según modo)
     if (isCode) {
       const intro = [
         '✿︎ `Vinculación de sockets` ✿︎',
@@ -207,6 +210,7 @@ var handler = async (m, { conn }) => {
       sentIntro = await sendText(conn, m.chat, intro, m)
     }
 
+    // timeout por expiración: enviar fallo y limpiar
     const timeoutId = setTimeout(async () => {
       if (finished) return
       finished = true
@@ -218,16 +222,51 @@ var handler = async (m, { conn }) => {
       printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
     }, expireMs + 2000)
 
+    // escucha actualizaciones
     sock.ev.on('connection.update', async (update) => {
       if (finished) return
       const { connection, lastDisconnect, qr } = update
 
+      // cuando llegue qr/string
       if (qr && !finished) {
         try {
           if (isCode) {
-            const code = gen8Digits()
-            sentPayload = await sendText(conn, m.chat, '```' + code + '```\n\n_Pegalo en el otro dispositivo para vincular._\n\nNota: válido por 45s.', m)
+            // Intentar obtener pairing code real de Baileys
+            try {
+              if (typeof sock.requestPairingCode === 'function') {
+                const phone = (m.sender || '').split('@')[0] || `${sessionName}`
+                let secret = await sock.requestPairingCode(phone)
+                if (!secret) throw new Error('pairing code empty')
+                // formatear y enviar SOLO el código (sin texto extra)
+                const formatted = formatPairingCode(String(secret))
+                sentPayload = await sendText(conn, m.chat, '```' + formatted + '```', m)
+                console.log('[subbot] pairing code (real) enviado:', formatted)
+              } else {
+                // requestPairingCode no disponible: informar fallo (no enviar código falso)
+                finished = true
+                clearTimeout(timeoutId)
+                try { await sendText(conn, m.chat, `*[❁]* No se pudo generar el código de vinculación.\n> ¡Intenta conectarte nuevamente!`, m) } catch (e) {}
+                await tryDeleteMessage(conn, m.chat, sentIntro)
+                try { sock.logout?.().catch(()=>{}); sock.close?.().catch(()=>{}) } catch {}
+                try { fs.rmSync(authDir, { recursive: true, force: true }) } catch {}
+                printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
+                return
+              }
+            } catch (errCode) {
+              // error al pedir pairing code: no enviar código falso, notificar fallo y limpiar
+              finished = true
+              clearTimeout(timeoutId)
+              console.error('[subbot] error al obtener pairing code real:', errCode)
+              try { await sendText(conn, m.chat, `*[❁]* No se pudo generar el código de vinculación.\n> ¡Intenta conectarte nuevamente!`, m) } catch (e) {}
+              await tryDeleteMessage(conn, m.chat, sentIntro)
+              await tryDeleteMessage(conn, m.chat, sentPayload)
+              try { sock.logout?.().catch(()=>{}); sock.close?.().catch(()=>{}) } catch {}
+              try { fs.rmSync(authDir, { recursive: true, force: true }) } catch {}
+              printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
+              return
+            }
           } else {
+            // is QR: enviar imagen
             const img = await qrcode.toBuffer(qr, { type: 'png', margin: 1, width: 512 })
             sentPayload = await sendImageBuffer(conn, m.chat, img, 'Escanea este QR con otro teléfono antes de 60 segundos.', m)
           }
@@ -236,6 +275,7 @@ var handler = async (m, { conn }) => {
         }
       }
 
+      // conexión exitosa
       if (connection === 'open' && !finished) {
         finished = true
         clearTimeout(timeoutId)
@@ -253,11 +293,13 @@ var handler = async (m, { conn }) => {
           await tryDeleteMessage(conn, m.chat, sentPayload)
           printCommandEvent({ message: rawText, connection: 'Exitosa', type: 'SubBot' })
           printSessionEvent({ action: 'Session creada en', number: jid })
+          // dejar socket corriendo
         } catch (e) {
           console.error('Error on open handling:', e)
         }
       }
 
+      // desconexión / errores
       if (lastDisconnect && lastDisconnect.error && !finished) {
         try {
           const baileysPkg = await import('@whiskeysockets/baileys')
@@ -272,6 +314,9 @@ var handler = async (m, { conn }) => {
         finished = true
         clearTimeout(timeoutId)
         try { await sendText(conn, m.chat, `*[❁]* No se pudo conectar al socket.\n> ¡Intenta conectarte nuevamente!`, m) } catch (e) {}
+        try { await tryDeleteMessage(conn, m.chat, sentIntro) } catch {}
+        try { await tryDeleteMessage(conn, m.chat, sentPayload) } catch {}
+        try { sock.logout?.().catch(()=>{}); sock.close?.().catch(()=>{}) } catch (e) {}
         try { fs.rmSync(authDir, { recursive: true, force: true }) } catch (e) {}
         printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
       }
