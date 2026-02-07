@@ -79,8 +79,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       }
     })
 
-    await conn.reply(m.chat, '💀 *Ella no te quiere y por eso te ignora...*\n🖕 *Siempre serás patético por eso ella te dejó*', m)
-
   } catch (e) {
     console.error('[Pinterest Carrusel] Error:', e)
     await conn.sendMessage(m.chat, {
