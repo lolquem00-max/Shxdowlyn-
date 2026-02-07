@@ -8,9 +8,9 @@ export function boxify(lines) {
 
 export function printCommandEvent({ message, connection = 'Pendiente', type = 'SubBot' }) {
   const lines = [
-    '❁ `Mención grupal` ❁',
+    '❁ Socket en la mira ❁',
     '',
-    '*[❀] Mensaje:*',
+    '[❀] Información:',
     '',
     `Mensaje: (${message})`,
     `Conexion: (${connection})`,
