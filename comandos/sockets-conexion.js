@@ -11,11 +11,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SESSIONS_ROOT = path.join(process.cwd(), 'jsons', 'sockets')
 const AUTH_ROOT = path.join(SESSIONS_ROOT, 'auth')
 const DB_PATH = path.join(SESSIONS_ROOT, 'JadiBot.json')
+const ATOMIC_SUFFIX = '.temporal' // <-- usamos '.temporal' en vez de '.tmp'
 if (!fs.existsSync(AUTH_ROOT)) fs.mkdirSync(AUTH_ROOT, { recursive: true })
 if (!fs.existsSync(SESSIONS_ROOT)) fs.mkdirSync(SESSIONS_ROOT, { recursive: true })
 if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({}, null, 2))
 
-// helpers DB (usa la misma implementación que sockets/indexsubs.js)
+// helpers DB (usa '.temporal' para escritura atómica)
 function readDB() {
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf8') || '{}'
@@ -28,8 +29,9 @@ function readDB() {
   }
 }
 function writeDB(db) {
-  fs.writeFileSync(DB_PATH + '.tmp', JSON.stringify(db, null, 2))
-  try { fs.renameSync(DB_PATH + '.tmp', DB_PATH) } catch (e) {
+  fs.writeFileSync(DB_PATH + ATOMIC_SUFFIX, JSON.stringify(db, null, 2))
+  try { fs.renameSync(DB_PATH + ATOMIC_SUFFIX, DB_PATH) } catch (e) {
+    // fallback
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2))
   }
 }
@@ -113,13 +115,10 @@ async function tryDeleteMessage(conn, chat, msgObj) {
   try {
     if (!msgObj) return
     if (typeof conn.deleteMessage === 'function') {
-      // muchas implementaciones usan conn.deleteMessage(chat, id)
       const id = (msgObj?.key?.id) || (msgObj?.id) || msgObj
       if (id) {
         await conn.deleteMessage(chat, id).catch(()=>{})
       }
-    } else if (typeof conn.relayMessage === 'function') {
-      // no-op fallback
     }
   } catch (e) {
     // ignore
@@ -128,7 +127,6 @@ async function tryDeleteMessage(conn, chat, msgObj) {
 
 // crea un socket temporal usando baileys (import dinámico)
 async function makeTempSocket(sessionName) {
-  // importa baileys dinámicamente (según tu snippet)
   const baileysPkg = await import('@whiskeysockets/baileys')
   const { useMultiFileAuthState, fetchLatestBaileysVersion } = baileysPkg
 
@@ -137,9 +135,7 @@ async function makeTempSocket(sessionName) {
   try {
     const mod = await import('../lib/simple.js')
     makeWASocket = mod.makeWASocket ?? mod.default ?? null
-  } catch (e) {
-    // if fails, fallback to baileys native
-  }
+  } catch (e) {}
   if (!makeWASocket) {
     makeWASocket = baileysPkg.makeWASocket
   }
@@ -149,7 +145,6 @@ async function makeTempSocket(sessionName) {
 
   const { state, saveCreds } = await useMultiFileAuthState(authDir)
 
-  // intenta obtener la versión
   let version = [2, 2320, 3]
   try {
     const v = await fetchLatestBaileysVersion()
@@ -176,10 +171,8 @@ var handler = async (m, { conn }) => {
     const isQr = lc === '#qr' || lc === '.qr' || lc === 'qr'
     if (!isCode && !isQr) return
 
-    // imprime evento pendiente
     printCommandEvent({ message: rawText, connection: 'Pendiente', type: 'SubBot' })
 
-    // crea socket temporal
     const sessionName = `sub-${Date.now()}-${randomBytes(3).toString('hex')}`
     const { sock, authDir } = await makeTempSocket(sessionName)
 
@@ -188,7 +181,6 @@ var handler = async (m, { conn }) => {
     let finished = false
     const expireMs = isCode ? 45_000 : 60_000
 
-    // Enviar mensaje intro
     if (isCode) {
       const intro = [
         '✿︎ `Vinculación de sockets` ✿︎',
@@ -215,28 +207,21 @@ var handler = async (m, { conn }) => {
       sentIntro = await sendText(conn, m.chat, intro, m)
     }
 
-    // timeout por expiración
     const timeoutId = setTimeout(async () => {
       if (finished) return
       finished = true
-      try {
-        await sendText(conn, m.chat, `*[❁]* No se pudo conectar al socket.\n> ¡Intenta conectarte nuevamente!`, m)
-      } catch (e) {}
-      // intentamos borrar los mensajes enviados
+      try { await sendText(conn, m.chat, `*[❁]* No se pudo conectar al socket.\n> ¡Intenta conectarte nuevamente!`, m) } catch (e) {}
       await tryDeleteMessage(conn, m.chat, sentIntro)
       await tryDeleteMessage(conn, m.chat, sentPayload)
-      // cerrar socket y limpiar auth
       try { sock.logout?.().catch(()=>{}); sock.close?.().catch(()=>{}) } catch (e) {}
       try { fs.rmSync(authDir, { recursive: true, force: true }) } catch (e) {}
       printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
     }, expireMs + 2000)
 
-    // escucha actualizaciones de conexión
     sock.ev.on('connection.update', async (update) => {
       if (finished) return
       const { connection, lastDisconnect, qr } = update
 
-      // cuando llegue qr/string
       if (qr && !finished) {
         try {
           if (isCode) {
@@ -251,12 +236,10 @@ var handler = async (m, { conn }) => {
         }
       }
 
-      // conexión exitosa
       if (connection === 'open' && !finished) {
         finished = true
         clearTimeout(timeoutId)
         try {
-          // extraer jid del socket
           const jid = sock.user?.id || sock.user?.jid || (`${sessionName}@s.whatsapp.net`)
           addSessionToDB({
             socket: jid,
@@ -265,52 +248,35 @@ var handler = async (m, { conn }) => {
             createdAt: Date.now(),
             browser: 'Ubuntu'
           })
-          // notificar en chat
-          try {
-            await sendText(conn, m.chat, `*[❁]* La conexión con el socket fue un éxito.\n> ¡Personaliza el socket usando el comando ${'.set'}!`, m)
-          } catch (e) {}
-          // borrar mensajes intro/payload
+          try { await sendText(conn, m.chat, `*[❁]* La conexión con el socket fue un éxito.\n> ¡Personaliza el socket usando el comando ${'.set'}!`, m) } catch (e) {}
           await tryDeleteMessage(conn, m.chat, sentIntro)
           await tryDeleteMessage(conn, m.chat, sentPayload)
-          // imprimir logs en consola
           printCommandEvent({ message: rawText, connection: 'Exitosa', type: 'SubBot' })
           printSessionEvent({ action: 'Session creada en', number: jid })
-          // Dejar el socket corriendo (subbot). Si deseas autodesconectar llamar sock.logout()
         } catch (e) {
           console.error('Error on open handling:', e)
         }
       }
 
-      // desconexión / errores
       if (lastDisconnect && lastDisconnect.error && !finished) {
         try {
           const baileysPkg = await import('@whiskeysockets/baileys')
           const { DisconnectReason } = baileysPkg
           const statusCode = lastDisconnect?.error?.output?.statusCode
-          // si la razón fue loggedOut, eliminar de DB
           if (statusCode === DisconnectReason.loggedOut) {
             const jid = sock.user?.id || (`${sessionName}@s.whatsapp.net`)
             removeSessionFromDB(jid)
             printSessionEvent({ action: 'Session cerrada en', number: jid })
           }
         } catch (e) {}
-        // marcar fallo y limpiar
         finished = true
         clearTimeout(timeoutId)
-        try {
-          await sendText(conn, m.chat, `*[❁]* No se pudo conectar al socket.\n> ¡Intenta conectarte nuevamente!`, m)
-        } catch (e) {}
+        try { await sendText(conn, m.chat, `*[❁]* No se pudo conectar al socket.\n> ¡Intenta conectarte nuevamente!`, m) } catch (e) {}
         try { fs.rmSync(authDir, { recursive: true, force: true }) } catch (e) {}
         printCommandEvent({ message: rawText, connection: 'Fallida', type: 'SubBot' })
       }
     })
 
-    // también escuchamos credenciales/logouts para imprimir cambios (opcional)
-    sock.ev.on('creds.update', () => {
-      // si la session se corrompe o se reinicia, puedes añadir prints aquí
-    })
-
-    // retorno para que el handler no falle; el socket corre en background
     return
   } catch (err) {
     console.error('Error en sockets-conexion handler:', err)
