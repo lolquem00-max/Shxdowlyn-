@@ -3,26 +3,24 @@ import fetch from 'node-fetch';
 let handler = async (m, { conn, text }) => {
   try {
     if (!text) {
-      return m.reply(`╭┈「 *YOUTUBE MUSIC PLAYER* 」
-│
-│ 🎵 *Uso correcto:*
-│ *▶️ #play* <canción/artista>
-│
-│ 🔸 *Ejemplo:* 
-│ *▶️ #play* Taylor Swift
-│ *▶️ #play* Bad Bunny
-│
-╰┈「 *Akina Wa Bot* 」`);
+      return m.reply(`🌸 *🎧 M U S I C  P L A Y E R* 🌸
+
+╔══════════════════════╗
+      📥 *DESCARGAR MÚSICA*
+╚══════════════════════╝
+
+✨ *Uso:* #play <nombre>
+🎶 *Ejemplo:* #play Taylor Swift
+🎵 *Ejemplo:* #play Bad Bunny
+
+━━━━━━━━━━━━━━━━━━━━━━
+      🤖 *${conn.getName(conn.user.jid)}*
+━━━━━━━━━━━━━━━━━━━━━━`);
     }
 
-    await m.reply(`╭┈「 *BÚSQUEDA EN CURSO* 」
-│
-│ 🔍 *Buscando en YouTube:*
-│ ${text}
-│
-│ ⚡ *Escaneando base de datos...*
-│
-╰┈「 *Akina Wa Bot* 」`);
+    await m.reply(`🔍 *Buscando en YouTube...*\n\n` +
+                 `🎵 *Consulta:* ${text}\n` +
+                 `⏳ *Espera un momento...*`);
 
     const searchQuery = encodeURIComponent(text);
     const searchUrl = `https://nexevo.onrender.com/search/youtube?q=${searchQuery}`;
@@ -31,43 +29,27 @@ let handler = async (m, { conn, text }) => {
     const searchData = await searchResponse.json();
 
     if (!searchData.status || !searchData.result || searchData.result.length === 0) {
-      return m.reply(`╭┈「 *ERROR DE BÚSQUEDA* 」
-│
-│ ❌ *No se encontraron resultados para:*
-│ ${text}
-│
-│ 💡 *Sugerencias:*
-│ • Verifica el nombre
-│ • Intenta otra canción
-│
-╰┈「 *Akina Wa Bot* 」`);
+      return m.reply(`❌ *No se encontraron resultados*\n\n` +
+                    `🔍 *Búsqueda:* ${text}\n` +
+                    `💡 *Intenta con otro nombre o artista*`);
     }
 
     const results = searchData.result.slice(0, 5);
 
-    let listText = `╭┈「 *RESULTADOS DE BÚSQUEDA* 」
-│
-│ 🎵 *Consulta:* ${text}
-│ 🔢 *Resultados:* ${results.length}/5
-│
-│`;
+    let listText = `🎧 *Resultados encontrados:*\n\n`;
     results.forEach((item, index) => {
-      listText += `│ *${index + 1}.* ${item.title}\n`;
-      listText += `│    ⏱️ ${item.duration} | 📺 ${item.channel}\n`;
-      listText += `│\n`;
+      listText += `*${index + 1}.* ${item.title}\n`;
+      listText += `   ⏱️ ${item.duration} | 📺 ${item.channel}\n\n`;
     });
-    listText += `│ 💫 *Instrucción:*
-│ Responde con el número (1-${results.length})
-│ para iniciar la descarga.
-│
-╰┈「 *Akina Wa Bot* 」`;
+    listText += `━━━━━━━━━━━━━━━━━━━━━━\n` +
+               `📝 *Responde con el número (1-${results.length})*`;
 
     await conn.sendMessage(m.chat, { 
       text: listText,
       contextInfo: {
         externalAdReply: {
-          title: '🎧 FUTURE MUSIC PLAYER v2.0',
-          body: 'Sistema de descarga avanzado',
+          title: '🎵 Descargar Música',
+          body: 'Selecciona una opción',
           thumbnailUrl: results[0].imageUrl,
           sourceUrl: results[0].link,
           mediaType: 1,
@@ -86,29 +68,12 @@ let handler = async (m, { conn, text }) => {
     setTimeout(() => {
       if (conn.playSession[sessionId]) {
         delete conn.playSession[sessionId];
-        conn.sendMessage(m.chat, { 
-          text: `╭┈「 *SESIÓN EXPIRADA* 」
-│
-│ ⏳ *Sesión de búsqueda expirada*
-│ 
-│ 🎵 *Para buscar otra canción:*
-│ ▶️ #play <nombre>
-│
-╰┈「 *Akina Wa Bot* 」`
-        });
       }
     }, 30000);
 
   } catch (error) {
     console.error(error);
-    await m.reply(`╭┈「 *ERROR DEL SISTEMA* 」
-│
-│ ⚠️ *Se produjo un error:*
-│ ${error.message}
-│
-│ 🔄 *Intenta nuevamente*
-│
-╰┈「 *Akina Wa Bot* 」`);
+    await m.reply(`⚠️ *Error*\n\n${error.message}`);
   }
 };
 
@@ -127,16 +92,11 @@ handler.before = async (m, { conn }) => {
         
         const selected = session.results[choice - 1];
         
-        await m.reply(`╭┈「 *DESCARGA INICIADA* 」
-│
-│ 🎵 *Título:* ${selected.title}
-│ ⏱️ *Duración:* ${selected.duration}
-│ 📺 *Canal:* ${selected.channel}
-│
-│ ⚡ *Procesando audio...*
-│ 🔄 *Convirtiendo a MP3...*
-│
-╰┈「 *Akina Wa Bot* 」`);
+        await m.reply(`⬇️ *Descargando...*\n\n` +
+                     `🎵 *Título:* ${selected.title}\n` +
+                     `⏱️ *Duración:* ${selected.duration}\n` +
+                     `📺 *Canal:* ${selected.channel}\n\n` +
+                     `⏳ *Convirtiendo a audio...*`);
 
         const videoUrl = encodeURIComponent(selected.link);
         const downloadUrl = `https://nexevo.onrender.com/download/y?url=${videoUrl}`;
@@ -145,16 +105,7 @@ handler.before = async (m, { conn }) => {
         const downloadData = await downloadResponse.json();
 
         if (!downloadData.status || !downloadData.result || !downloadData.result.url) {
-          return m.reply(`╭┈「 *ERROR DE DESCARGA* 」
-│
-│ ❌ *No se pudo descargar el audio*
-│ 
-│ 💡 *Posibles causas:*
-│ • Video no disponible
-│ • Restricciones de YouTube
-│ • Error en el servidor
-│
-╰┈「 *Akina Wa Bot* 」`);
+          return m.reply('❌ *Error al descargar el audio*');
         }
 
         const audioInfo = downloadData.result.info;
@@ -163,11 +114,11 @@ handler.before = async (m, { conn }) => {
         await conn.sendMessage(m.chat, {
           audio: { url: audioUrl },
           mimetype: 'audio/mpeg',
-          fileName: `${selected.title.replace(/[<>:"/\\|?*]+/g, '')}.mp3`.substring(0, 100),
+          fileName: `${selected.title.slice(0, 50)}.mp3`,
           contextInfo: {
             externalAdReply: {
-              title: '🎧 DESCARGA COMPLETADA',
-              body: 'Audio listo para reproducir',
+              title: '🎵 ' + (selected.title.length > 25 ? selected.title.slice(0, 25) + '...' : selected.title),
+              body: selected.channel,
               thumbnailUrl: audioInfo.thumbnail || selected.imageUrl,
               sourceUrl: selected.link,
               mediaType: 1,
