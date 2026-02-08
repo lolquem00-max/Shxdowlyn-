@@ -96,7 +96,7 @@ handler.before = async (m, { conn }) => {
                      `🎵 *Título:* ${selected.title}\n` +
                      `⏱️ *Duración:* ${selected.duration}\n` +
                      `📺 *Canal:* ${selected.channel}\n\n` +
-                     `⏳ *Convirtiendo a audio...*`);
+                     `⏳ *Espere un momento...*`);
 
         const videoUrl = encodeURIComponent(selected.link);
         const downloadUrl = `https://nexevo.onrender.com/download/y?url=${videoUrl}`;
