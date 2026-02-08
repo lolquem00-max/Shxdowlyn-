@@ -137,6 +137,6 @@ handler.before = async (m, { conn }) => {
 
 handler.help = ['play <búsqueda>'];
 handler.tags = ['music'];
-handler.command = ['play', 'music', 'song', 'descargarmusica', 'p'];
+handler.command = ['play', 'music'];
 
 export default handler;
