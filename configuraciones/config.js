@@ -12,25 +12,22 @@ watchFile(file, () => {
 
 // #_Owner List_#
 global.owner = [
-  '18094374392',
-  '573107400303',
+  '5493863447787',
 ];
+
 global.mods = [
-  '5355699866',
-];
-global.support = [
-  '526183215294',
+  '5493863402551',
 ];
 
 // #_Bot Manager_#
 
-global.botname = 'Akina Wa Bot';
-global.textbot = 'developed by FélixOfc';
-global.moneda = 'AkinaCoins';
+global.botname = 'Shxdowlyn';
+global.textbot = 'Developed by Jade';
+global.moneda = 'ShadowCoins';
 global.emoji = '✨';
-global.ownername = 'Félix ofc';
-global.version = '*BETA*';
-global.ttag = ['18094374392'];
+global.ownername = 'Jade';
+global.version = '1.0.0';
+global.ttag = ['5493863447787'];
 global.prems = [];
 
 // #_Channel Manager_#
