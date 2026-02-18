@@ -34,13 +34,13 @@ Desarrollado con Node.js y Baileys.
 ---
 
 <div align="center">
-  <a href="https://github.com/Dev-FelixOfc/AkinaWa-Bot/stargazers">
+  <a href="https://github.com/lolquem00-max/Shxdowlyn-/stargazers">
     <img src="https://img.shields.io/badge/Star%20on%20GitHub-⭐-blueviolet?style=for-the-badge" alt="Star on GitHub">
   </a>
-  <a href="https://github.com/Dev-FelixOfc/AkinaWa-Bot/fork">
+  <a href="https://github.com/lolquem00-max/Shxdowlyn-/fork">
     <img src="https://img.shields.io/badge/Fork%20Repo-🍴-green?style=for-the-badge" alt="Fork Repo">
   </a>
-  <a href="https://github.com/Dev-FelixOfc/AkinaWa-Bot/issues/new">
+  <a href="https://github.com/lolquem00-max/Shxdowlyn-/issues/new">
     <img src="https://img.shields.io/badge/Report%20Issue-🐛-red?style=for-the-badge" alt="Report Issue">
   </a>
 </div>
