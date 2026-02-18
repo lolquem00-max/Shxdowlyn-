@@ -1,5 +1,5 @@
 {
-"name": "Akina Wa Bot",
+"name": "Shxdowlyn",
 "version": "1.8.2",
 "description": "Bot de whatsapp desarrollado por github copilot",
 "main": "index.js",
@@ -15,7 +15,7 @@
 "type": "git",
 "url": "git+ttps://github.com/Dev-FelixOfc/AkinaWa-Bot.git"
 },  
-"author": "Felix ofc",
+"author": "Jade",
 "license": "MIT-License",
 "bugs": {
 "url": "ttps://github.com/Dev-FelixOfc/AkinaWa-Bot/issues"
