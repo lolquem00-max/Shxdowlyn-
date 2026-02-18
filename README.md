@@ -1,6 +1,6 @@
-# Akina Wa
+# Shxdowlyn bot
 
-![Akina Wa Banner](https://felixproyects.ooguy.com/AkinaWa-Bot.jpg)
+![Shxdowlyn Banner](https://files.catbox.moe/lcxmnc.jpg)
 
 [![Beta Version](https://img.shields.io/badge/version-Beta%20v0.1.0-blue)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
