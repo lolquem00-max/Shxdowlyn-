@@ -2,11 +2,10 @@
 
 ![Shxdowlyn Banner](https://files.catbox.moe/lcxmnc.jpg)
 
-[![Beta Version](https://img.shields.io/badge/version-Beta%20v0.1.0-blue)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/Dev-FelixOfc/AkinaWa-Bot?style=social)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/Dev-FelixOfc/AkinaWa-Bot?style=social)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/network)
-
+[![Beta Version](https://img.shields.io/badge/version-Beta%20v0.1.0-blue)](https://github.com/lolquem00-max/Shxdowlyn-/releases)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+[![GitHub stars](https://img.shields.io/github/stars/lolquem00-max/Shxdowlyn-?style=social)](https://github.com/lolquem00-max/Shxdowlyn-/stargazers)  
+[![GitHub forks](https://img.shields.io/github/forks/lolquem00-max/Shxdowlyn-?style=social)](https://github.com/lolquem00-max/Shxdowlyn-/network)
 Bienvenido al repositorio de Shxdowlyn Bot.
 
 ## Description
