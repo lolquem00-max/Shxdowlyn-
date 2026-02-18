@@ -32,11 +32,11 @@ global.prems = [];
 
 // #_Channel Manager_#
 
-global.newletter = '120363404822730259@newsletter';
-global.channelname = 'Akina Wa Channel';
+global.newletter = '0029VbBx9210gcfSqAtvxf1t@newsletter';
+global.channelname = 'Shxdowlyn Channel';
 
 // #_Mood Manager_#
 
-global.jadi = 'Jadibots';
-global.sessions = 'Session';
+global.jadi = 'ShxdowlynBots';
+global.sessions = 'Sessions';
 global.Jadibots = true;
