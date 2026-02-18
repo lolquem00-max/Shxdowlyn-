@@ -7,13 +7,15 @@
 [![GitHub stars](https://img.shields.io/github/stars/Dev-FelixOfc/AkinaWa-Bot?style=social)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/Dev-FelixOfc/AkinaWa-Bot?style=social)](https://github.com/Dev-FelixOfc/AkinaWa-Bot/network)
 
-Bienvenido al repositorio de Akina Wa, un bot de WhatsApp inspirado en la estética neko. Este proyecto se encuentra actualmente en versión Beta, en desarrollo activo y aún no está completo. Puede contener errores o faltarle comandos ya que apenas está en proceso
+Bienvenido al repositorio de Shxdowlyn Bot.
 
 ## Description
-Akina Wa Es un bot de WhatsApp diseñado para gestionar comandos con un toque de temática neko, incluyendo el envío de stickers, memes y respuestas informativas. Desarrollado con Node.js y whatsapp-web.js, su objetivo es proporcionar un entorno bueno y confiable.
+
+Shxdowlyn Bot es un bot de WhatsApp en desarrollo enfocado en automatización de comandos, administración de grupos y herramientas personalizadas.
+Actualmente se encuentra en versión Beta y sigue en mejora constante.
 
 ## Instalación 
-Para configurar y ejecutar el bot localmente (requiere Node.js):
+Desarrollado con Node.js y Baileys.
 
 1. Clonar repositorio:  
    ```bash
