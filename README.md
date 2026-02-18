@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 [![GitHub stars](https://img.shields.io/github/stars/lolquem00-max/Shxdowlyn-?style=social)](https://github.com/lolquem00-max/Shxdowlyn-/stargazers)  
 [![GitHub forks](https://img.shields.io/github/forks/lolquem00-max/Shxdowlyn-?style=social)](https://github.com/lolquem00-max/Shxdowlyn-/network)
+
 Bienvenido al repositorio de Shxdowlyn Bot.
 
 ## Description
