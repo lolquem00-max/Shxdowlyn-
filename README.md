@@ -19,7 +19,7 @@ Desarrollado con Node.js y Baileys.
 
 1. Clonar repositorio:  
    ```bash
-   git clone https://github.com/Dev-FelixOfc/AkinaWa-Bot.git
+   git clone https://github.com/lolquem00-max/Shxdowlyn-.git
    ```
 2. Instalar dependencias:  
    ```bash
