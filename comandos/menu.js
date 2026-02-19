@@ -57,34 +57,71 @@ let handler = async (m, { conn, usedPrefix }) => {
 👤 Usuario: ${tagUser}
 `;
 
-    // Generar mensaje interactivo
-    const msg = generateWAMessageFromContent(m.chat, {
-      viewOnceMessage: {
-        message: {
-          imageMessage: mediaMessage.videoMessage, // Mostrar video como vista previa
-          caption: txt,
-          footer: "SHXDOWLYN",
-          interactive: {
-            type: "buttons",
-            body: txt,
-            footer: "SHXDOWLYN",
-            buttons: [
-              { buttonId: `${usedPrefix}allmenu`, buttonText: { displayText: "Menú Completo" }, type: 1 },
-              { buttonId: `${usedPrefix}ping`, buttonText: { displayText: "Estado del Sistema" }, type: 1 },
-              { buttonId: `${usedPrefix}owner`, buttonText: { displayText: "Fundador" }, type: 1 },
-            ],
-          },
-        },
+const msg = {
+  body: { text: txt },
+  footer: { text: "SHXDOWLYN" },
+  nativeFlowMessage: {
+    buttons: [
+      {
+        name: "single_select",
+        buttonParamsJson: JSON.stringify({
+          title: "Shxdowlyn Interface",
+          sections: [
+            {
+              title: "Shxdowlyn Garden",
+              highlight_label: "ELITE",
+              rows: [
+                { title: "Menú Completo", description: "Ver todos los comandos", id: `${usedPrefix}allmenu` },
+                { title: "Estado del Sistema", description: "Velocidad y rendimiento", id: `${usedPrefix}ping` },
+                { title: "Fundador", description: "Contacto del creador", id: `${usedPrefix}owner` }
+              ]
+            }
+          ]
+        })
       },
-    }, { quoted: m });
-
-    await conn.relayMessage(m.chat, msg.message, {});
-
-  } catch (e) {
-    console.error(e);
-    conn.reply(m.chat, "El núcleo de Shadow ha fallado...", m);
+      {
+        name: "cta_copy",
+        buttonParamsJson: JSON.stringify({
+          display_text: "Copiar Identidad",
+          id: "shxdowlyn_core",
+          copy_code: "I AM HAPPY"
+        })
+      },
+      {
+        name: "cta_url",
+        buttonParamsJson: JSON.stringify({
+          display_text: "Canal Oficial",
+          url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t"
+        })
+      }
+    ],
+    messageParamsJson: JSON.stringify({
+      limited_time_offer: {
+        text: "Shadow Menu List",
+        url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t",
+        copy_code: "SHADOW-BOT-MD",
+        expiration_time: 1754613436864329
+      },
+      bottom_sheet: {
+        in_thread_buttons_limit: 2,
+        divider_indices: [1, 2],
+        list_title: "Shxdowlyn Interface",
+        button_title: "On Menu shxdowlyn"
+      },
+      tap_target_configuration: {
+        title: "▸ SHXDOWLYN ◂",
+        description: "Menú Principal",
+        canonical_url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t",
+        domain: "https://whatsapp.com",
+        button_index: 0
+      }
+    })
+  },
+  contextInfo: {
+    mentionedJid: [m.sender],
+    isForwarded: true,
+    forwardingScore: 999999
   }
 };
 
-handler.command = ['menu', 'help', 'allmenu'];
-export default handler;
+await conn.relayMessage(m.chat, msg, {});
