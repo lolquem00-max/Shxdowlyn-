@@ -11,7 +11,7 @@ Bienvenido al repositorio de Shxdowlyn Bot.
 
 <div align="center">
   <br>
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=1E90FF&lines=HOLIISS+BIENVENID%40;AL+REPOSITORIO+DE;SHXDOWLYN+;ESPERO+DISFRUTES+LO+QUE+VES;7W7+OYE+%E2%AD%90;CHAUUUUS+I+LOVE+YOU+%E2%9D%A4%EF%B8%8F"alt="Typing SVG">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=1E90FF&lines=HOLIISS+BIENVENID%40;AL+REPOSITORIO+DE;SHXDOWLYN+;ESPERO+DISFRUTES+LO+QUE+VES;₍ᐢ..ᐢ₎+OYE+%E2%AD%90;CHAUUUUS+I+LOVE+YOU+%E2%9D%A4%EF%B8%8F"alt="Typing SVG">
   <br><br>
 
 ## Description
