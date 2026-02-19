@@ -38,7 +38,7 @@ say('SHXDOWLYN', {
   gradient: ['cyan', 'magenta']
 })
 
-say('Developed by lolquem00-max', {
+say('Developed by Jade', {
   font: 'console',
   align: 'center',
   colors: ['white']
