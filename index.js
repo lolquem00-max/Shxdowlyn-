@@ -222,17 +222,18 @@ global.reloadHandler = async function(restatConn) {
 try {
 const Handler = await import(`./configuraciones/manejador.js?update=${Date.now()}`).catch(console.error);
 if (Object.keys(Handler || {}).length) handler = Handler
-} catch (e) {
-console.error(e);
+}catch (e) {
+  console.error(e);
 }
+
 if (restatConn) {
-const oldChats = global.conn.chats
-try {
-global.conn.ws.close()
-} catch { }
-conn.ev.removeAllListeners()
-global.conn = makeWASocket(connectionOptions, {chats: oldChats})
-isInit = true
+  const oldChats = global.conn.chats
+  try {
+    global.conn.ws.close()
+  } catch (e) { }  // ⚠ aquí estaba el error
+  conn.ev.removeAllListeners()
+  global.conn = makeWASocket(connectionOptions, {chats: oldChats})
+  isInit = true
 }
 if (!isInit) {
 conn.ev.off('messages.upsert', conn.handler)
