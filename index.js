@@ -173,7 +173,9 @@ if (global.db) setInterval(async () => {
 if (global.db.data) await global.db.write()
 if (opts['autocleartmp']) {
   const tmpFolders = [join(os.tmpdir(), 'tmp')]
-  tmpFolders.forEach(folder => cp.spawn('find', [folder, '-amin', '3', '-type', 'f', '-delete']))
+  tmpFolders.forEach(folder => {
+    if (existsSync(folder)) {
+      spawn('find', [folder, '-amin', '3', '-type', 'f', '-delete'])
 }
 async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
