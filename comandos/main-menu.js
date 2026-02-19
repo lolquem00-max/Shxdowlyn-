@@ -1,89 +1,136 @@
-import fs from 'fs'
-import { join } from 'path'
+import moment from "moment-timezone";
+import fetch from "node-fetch";
+const { prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default;
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
   try {
-    let taguser = '@' + m.sender.split('@')[0]
-    let nombreBot = 'Akina Wa'
-    let bannerFinal = 'https://felixproyects.ooguy.com/AkinaWa-Bot.jpg'
+    const now = moment().tz("America/Tegucigalpa");
+    const timeStr = now.format("HH:mm:ss");
+    const tagUser = '@' + m.sender.split('@')[0];
+    const videoUrl = "https://files.catbox.moe/1joj6p.mp4";
 
-    const botActual = conn.user?.jid?.split('@')[0]?.replace(/\D/g, '')
-    const configPath = join('./JadiBots', botActual || '', 'config.json')
-    if (botActual && fs.existsSync(configPath)) {
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath))
-        if (config.name) nombreBot = config.name
-        if (config.banner) bannerFinal = config.banner
-      } catch (e) {
-        console.error(e)
-      }
-    }
+    // Preparar video (opcional)
+    const mediaMessage = await prepareWAMessageMedia(
+      { video: { url: videoUrl }, gifPlayback: true },
+      { upload: conn.waUploadToServer }
+    );
 
-    const tipo = conn.user?.jid === global.conn?.user?.jid ? '(𝐌𝐨𝐨𝐝)' : '(𝐒𝐮𝐛-𝐁𝐨𝐭)'
-    const devby = `${nombreBot}, ${ownername}`
+    const txt = `
+ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ
+ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ
+橫㈵𓂂ㅤㅤ𓐮𝖲ۣؗ𝖧ۤ𝖷ؗ𝖣ۣ𝖮ؗ𝖶ㅤㅤ▞ㅤㅤ𓆭𓆭₂₈₎
+◯◯▸ㅤㅤ⎯⎯▬𝖫ؗ𝖸ۣۤ𝖭ㅤㅤ🐢ㅤㅤ ▓█
 
-    let menu = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 *${nombreBot}* *${tipo}*
-Aǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
+⟍𝄄𝄄𝄄𝄄𝄄₂₈₎ㅤㅤ 🐚ㅤㅤ#𝖼𝗋𝖾𝖺𝗍𝗈𝗋ㅤㅤ⬤⬤⏋
+> ㅤㅤㅤㅤ﹫𝗌𝗁𝗑𝖽𝗈𝗐𝗅𝗒𝗇ㅤㅤ𔘓
 
-╭┈ ↷
-│ ✐ ${textbot}
-│ ✐ ꒷ꕤ💎ദ ᴘᴀɢɪɴᴀ ᴡᴇʙ ෴
-│ https://yotsuba.giize.com
-│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴
-│ https://whatsapp.com/channel/0029Vb6p68rF6smrH4Jeay3Y
-╰─────────────────
-‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎
-*»  ⊹ ˚୨ •(=^●ω●^=)• Main* ⊹
-> Comandos más importantes en el bot.
+ㅤ  𝗐𝖾𝗅𝖼𝗈𝗆𝖾ㅤ𝗌𝗈𝗒ㅤ𝗌⵿𝗁͟𝗑᤻͟𝖽᤻͟𝗈⵿𝗐ㅤ𝗅𝖺ㅤ
+ㅤ     𝗌𝗈𝗇𝗋𝗂𝗌𝖺ㅤ𝗁𝖾𝖼𝗁𝖺ㅤ𝖼͟𝗈᤻͟𝖽⵿𝗂𝗀᤻͟𝗈
 
-*❏ #ping • #p*
-> Mira la velocidad de respuesta del bot.
-*❏ #menu • #help*
-> Mira la lista de comandos del bot.
+ㅤ   𝖺ㅤ𝖼𝗈𝗇𝗍𝗂𝗇𝗎𝖺𝖼𝗂𝗈𝗇ㅤ𝗅𝖾ㅤ𝗆𝗎𝖾𝗌
+ㅤㅤ   -𝗍𝗋𝗈ㅤ𝗆𝗂𝗌ㅤ𝖼⵿𝗈͟𝗆᤻͟𝖺᤻͟𝗇᤻͟𝖽᤻͟𝗈⵿𝗌
 
-*»  ⊹ ˚୨ •(=^●ω●^=)• Economía* ⊹
-> ✎ Comandos de economía y Rpg para disfrutar con tus amigos.
+＿＿／ ㅤㅤ ◢𝖺𝖽𝗆𝗂𝗇𝗂𝗌𝗍𝗋. ㅤㅤ  攤䥵𓌙
 
-*❏ #daily • #diario*
-> Obtén una recompensa diaria.
-*❏ #bal • #balance*
-> Mira cuántos coins tienes.
-*❏ #chest • #cofre*
-> Obtén un cofre con recompensas cada 25 minutos.
-*❏ #crime • #crimen*
-> Comenté un crimen y gana recompensas.
-*❏ #baltop • #topbalance*
-> Mira el top de usuarios con más Coins.
-*❏ #withdraw • #givechar • #regcoins*
-> Regala coins a tus amigos.
-*❏ #work • #trabajar • #trabajo*
-> Trabaja cada 5 minutos y gana coins.
-*❏ #deposit • #dep • #depositar*
-> Deposita tus coins en el banco.
-*❏ #rob • #robar*
-> Roba a otros usuarios para ganar más coins.`
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗆𝖾𝗇𝗎
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗉𝗋𝗈𝗆𝗈𝗋𝖾/.𝖽𝖾𝗆𝗈𝗍𝖾 @
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗀𝗉 / 𝗀𝗋𝗎𝗉𝗈 ( on/off )
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗐𝖾𝗅𝖼𝗈𝗆𝖾 ( on / off ) 
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗍𝖺𝗀
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗄𝗂𝖼𝗄 @
 
-    await conn.sendMessage(m.chat, {
-      text: menu,
+＿＿／ ㅤ ㅤ ◢𝗋𝖺𝗆𝖽𝗈𝗆 ㅤ ㅤ  攤䥵𓌙
+
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗉𝗅𝖺𝗒
+𓊋㈵➧ㅤㅤ🔘ㅤㅤ〉〉ㅤ.𝗀𝖺𝗆𝖾
+
+> ㅤㅤㅤㅤ@proximoㅤㅤ𔘓
+
+▙▅▚ ㅤ ⇲𝖢𝖧𝖠𝖭𝖭𝖤𝖫ㅤ⦙⦙⦙◗ ㅤ 𓂧⁸⁶
+
+ㅤㅤ𝖼𝗋𝖾𝖺𝗍𝗈𝗋/decoㅤㅤ𔘓ㅤㅤ𝗌𝗁𝖾𝗋𝗒𝗅
+
+> © 2026 creado por Jade.
+
+━━━━━━━━━━━━━━━━━━━━━━
+🕒 Hora: ${timeStr}
+👤 Usuario: ${tagUser}
+`;
+
+    const msg = {
+      body: { text: txt },
+      footer: { text: "SHXDOWLYN" },
+      nativeFlowMessage: {
+        buttons: [
+          {
+            name: "single_select",
+            buttonParamsJson: JSON.stringify({
+              title: "Shxdowlyn Interface",
+              sections: [
+                {
+                  title: "Shxdowlyn Garden",
+                  highlight_label: "ELITE",
+                  rows: [
+                    { title: "Menú Completo", description: "Ver todos los comandos", id: `${usedPrefix}allmenu` },
+                    { title: "Estado del Sistema", description: "Velocidad y rendimiento", id: `${usedPrefix}ping` },
+                    { title: "Fundador", description: "Contacto del creador", id: `${usedPrefix}owner` }
+                  ]
+                }
+              ]
+            })
+          },
+          {
+            name: "cta_copy",
+            buttonParamsJson: JSON.stringify({
+              display_text: "Copiar Identidad",
+              id: "shxdowlyn_core",
+              copy_code: "I AM HAPPY"
+            })
+          },
+          {
+            name: "cta_url",
+            buttonParamsJson: JSON.stringify({
+              display_text: "Canal Oficial",
+              url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t"
+            })
+          }
+        ],
+        messageParamsJson: JSON.stringify({
+          limited_time_offer: {
+            text: "Shadow Menu List",
+            url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t",
+            copy_code: "SHADOW-BOT-MD",
+            expiration_time: 1754613436864329
+          },
+          bottom_sheet: {
+            in_thread_buttons_limit: 2,
+            divider_indices: [1, 2],
+            list_title: "Shxdowlyn Interface",
+            button_title: "On Menu shxdowlyn"
+          },
+          tap_target_configuration: {
+            title: "▸ SHXDOWLYN ◂",
+            description: "Menú Principal",
+            canonical_url: "https://whatsapp.com/channel/0029VbBx9210gcfSqAtvxf1t",
+            domain: "https://whatsapp.com",
+            button_index: 0
+          }
+        })
+      },
       contextInfo: {
         mentionedJid: [m.sender],
-        externalAdReply: {
-          title: devby,
-          sourceUrl: 'https://yotsuba.giize.com',
-          mediaType: 1,
-          renderLargerThumbnail: true,
-          thumbnailUrl: bannerFinal
-        }
+        isForwarded: true,
+        forwardingScore: 999999
       }
-    }, { quoted: m })
+    };
+
+    await conn.relayMessage(m.chat, msg, {});
 
   } catch (e) {
-    await m.reply(`✘ Ocurrió un error al mostrar el menú.\n\n${e}`)
+    console.error(e);
+    conn.reply(m.chat, "El núcleo de Shadow ha fallado...", m);
   }
-}
+};
 
-handler.help = ['menu']
-handler.tags = ['main']
-handler.command = ['menu', 'help', 'menú', 'asistenciabot', 'comandosbot', 'listadecomandos', 'menucompleto']
-
-export default handler
+handler.command = ['menu', 'help', 'allmenu', 'Menú']; // ahora también funciona con .Menú
+export default handler;
