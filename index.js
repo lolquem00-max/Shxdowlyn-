@@ -247,24 +247,6 @@ process.on('unhandledRejection', (reason, promise) => {
 console.error("Rechazo no manejado detectado:", reason);
 });
 
-global.rutaJadiBot = join(__dirname, `./${jadi}`)
-if (global.Jadibots) {
-if (!existsSync(global.rutaJadiBot)) {
-mkdirSync(global.rutaJadiBot, { recursive: true }) 
-console.log(chalk.bold.cyan(`La carpeta: ${jadi} se creó correctamente.`))
-} else {
-console.log(chalk.bold.cyan(`La carpeta: ${jadi} ya está creada.`)) 
-}
-const readRutaJadiBot = readdirSync(rutaJadiBot)
-if (readRutaJadiBot.length > 0) {
-const creds = 'creds.json'
-for (const gjbts of readRutaJadiBot) {
-const botPath = join(rutaJadiBot, gjbts)
-const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) {
-JadiBot({pathJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
-}}}}
-
 global.plugins = {}
 const comandoFolder = join(__dirname, './comandos')
 const comandoFilter = (filename) => /\.js$/.test(filename)
