@@ -171,10 +171,10 @@ conn.logger.info(`[ 🐢 ]  H E C H O\n`)
 if (!opts['test']) {
 if (global.db) setInterval(async () => {
 if (global.db.data) await global.db.write()
-if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
-}, 30 * 1000);
+if (opts['autocleartmp']) {
+  const tmpFolders = [join(os.tmpdir(), 'tmp')]
+  tmpFolders.forEach(folder => cp.spawn('find', [folder, '-amin', '3', '-type', 'f', '-delete']))
 }
-
 async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
 global.stopped = connection;
