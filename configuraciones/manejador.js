@@ -362,20 +362,17 @@ console.log(m.message)
 }}}
 
 global.dfail = (type, m, conn) => {
-const msg = {
-rowner: `*ᐛ👑* Está funcion solo puede ser usada por mi *creador.*
-> ✰ 𝐃𝐞𝐬𝐜𝐨𝐧𝐨𝐬𝐢𝐝𝐨 𝐗𝐳𝐬𝐲 (•̀ᴗ•́)و`, 
-owner: `*ᐛ👑* Está funcion solo puede ser usada por mi *creador.*
-> ✰ 𝐃𝐞𝐬𝐜𝐨𝐧𝐨𝐬𝐢𝐝𝐨 𝐗𝐳𝐬𝐲 (•̀ᴗ•́)و`, 
-mods: `*ᐛ👑* Está funcion solo puede ser usada por mi *creador.*
-> ✰ 𝐃𝐞𝐬𝐜𝐨𝐧𝐨𝐬𝐢𝐝𝐨 𝐗𝐳𝐬𝐲 (•̀ᴗ•́)و`, 
-premium: `*ᐛ👑* Está funcion solo puede ser usada por los ciudadanos amigos del rey.`, 
-group: `*ᐛ👑* Está funcion encantada solo puede ser usada en reinos de poder *(grupos).*`,
-private: `*ᐛ👑* Está funcion encantada solo puede ser ejecutada en mi casa *(chat privado).*`,
-admin: `*ᐛ👑* Está funcion encantada solo puede ser ejecutada por las personas más importantes del reino *(grupo).*`, 
-botAdmin: `*ᐛ👑* Está funcion encantada solo puede ser ejecutada si yo soy una de las princesas de este reino *(grupo).*`,
-restrict: `+ *Este comando solo puede ser ejecutado por mi owner.*`
-}[type]
+  const msg = {
+    rowner: `𝄄ׄㅤ𝅄🌸⃞፝͜͡⌒𝅄 Esta función solo la puede usar mi creador. ¿QUIEN TE CREES?`,
+    owner: `𝄄ׄㅤ𝅄🌸⃞፝͜͡⌒𝅄 Esta función solo la puede usar mi creador. ¿QUIEN TE CREES?`,
+    mods: `𝄄ׄㅤ𝅄🌸⃞፝͜͡⌒𝅄 Esta función solo la puede usar mi creador. ¿QUIEN TE CREES?`,
+    premium: `𝄄ׄㅤ𝅄🍒⃞፝͜͡⌒𝅄 Estas funciones son premium. No puedes usarlo lol.`,
+    group: `𝄄ׄㅤ𝅄🌷⃞፝͜͡⌒𝅄  Usaste mal un comando o intentaste usar un comando siendo tan nub? 🌝. Está funcion solo sirve en grupos. Quien te crees para usar mis comandos en chat privado? JSJAJAJAJAA. NUuub.`,
+    private: `𝄄ׄㅤ𝅄🪷⃞፝͜͡⌒𝅄 ERES TAN NUB QUE CREES PODER USAR ESTE COMANDO EN UN GRUPO. Solo funciona en chat privado.`,
+    admin: `𝄄ׄㅤ𝅄🍓⃞፝͜͡⌒𝅄 Esto lo puede usar un administrador. Que te crees..?`,
+    botAdmin: `𝄄ׄㅤ𝅄💮⃞፝͜͡⌒𝅄 Este comando sólo puede ser ejecutado si soy administradora del grupo.`,
+    restrict: `𝄄ׄㅤ𝅄🫐⃞፝͜͡⌒𝅄 Este comando solo puede ser usado por mi Owner. ¿Quién te crees?`
+  }[type]
 if (msg) return conn.reply(m.chat, msg, m).then(_ => m.react('🛑'))
 }
 let file = global.__filename(import.meta.url, true)
