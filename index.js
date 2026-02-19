@@ -169,13 +169,23 @@ conn.isInit = false;
 conn.well = false;
 conn.logger.info(`[ 🐢 ]  H E C H O\n`)
 if (!opts['test']) {
-if (global.db) setInterval(async () => {
-if (global.db.data) await global.db.write()
-if (opts['autocleartmp']) {
-  const tmpFolders = [join(os.tmpdir(), 'tmp')]
-  tmpFolders.forEach(folder => {
-    if (existsSync(folder)) {
-      spawn('find', [folder, '-amin', '3', '-type', 'f', '-delete'])
+  if (global.db) setInterval(async () => {
+    if (global.db.data) await global.db.write()
+    // Limpieza de carpeta temporal
+    if (opts['autocleartmp']) {
+      const tmpFolders = [join(__dirname, 'temporal')]
+      tmpFolders.forEach(folder => {
+        if (existsSync(folder)) {
+          const files = readdirSync(folder)
+          files.forEach(file => {
+            const filePath = join(folder, file)
+            unlinkSync(filePath)
+          })
+        }
+      })
+      console.log(chalk.gray(`→ Archivos de la carpeta temporal eliminados`))
+    }
+  }, 30 * 1000)
 }
 async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
