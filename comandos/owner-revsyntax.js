@@ -52,7 +52,7 @@ var handler = async (m, { conn, usedPrefix, command }) => {
       ownersRaw = JSON.parse(raw || '{}')
     } catch (e) {
       // Si no se puede leer owner.json, denegar por seguridad
-      try { await m.react?.('✖️') } catch {}
+      try { await m.react?.('✖️') } catch (e) {}
       return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
     }
 
