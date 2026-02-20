@@ -79,7 +79,8 @@ var handler = async (m, { conn, usedPrefix, command }) => {
     const senderNumber = normalizeNumber(m.sender || m.from || '')
     const ownerEntry = ownersMap[senderNumber]
     if (!ownerEntry || !ownerEntry.enabled) {
-      try { await m.react?.('✖️') } catch {}
+  try { await m.react?.('✖️') } catch (e) {}
+}
       return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
     }
 
