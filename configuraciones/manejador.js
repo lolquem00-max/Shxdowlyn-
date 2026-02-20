@@ -379,5 +379,3 @@ watchFile(file, async () => {
   if (global.reloadHandler) console.log(await global.reloadHandler())
 })
 }
-}
-}
