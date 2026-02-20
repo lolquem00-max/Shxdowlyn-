@@ -332,20 +332,14 @@ user,
 chat,
 settings
 }
-try {
-await plugin.call(this, m, extra)
-} catch (err) {
-m.error = err
-console.error(err)
 } finally {
-if (typeof plugin.after === "function") {
-try {
-  await plugin.after.call(this, m, extra)
-} catch (err) {
-  console.error(err)
-} catch (err) {
-  console.error(err)
-} finally {
+  if (typeof plugin.after === "function") {
+    try {
+      await plugin.after.call(this, m, extra)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 if (opts["queque"] && m.text) {
 const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
 if (quequeIndex !== -1)
