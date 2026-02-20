@@ -574,7 +574,7 @@ END:VCARD
                                 }, {
                                     upload: conn.waUploadToServer,
                                     ...options,
-                                }, );
+                                });
                             }
                         } catch (error) {
                             console.error("Failed to get file type:", error);
