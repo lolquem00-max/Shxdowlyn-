@@ -42,8 +42,9 @@ function normalizeNumber(raw) {
 var handler = async (m, { conn, usedPrefix, command }) => {
   try {
     await m.react?.('🕒') 
-    try { conn.sendPresenceUpdate?.('composing', m.chat) } catch {}
-
+    try { 
+  conn.sendPresenceUpdate?.('composing', m.chat) 
+} catch (e) {}
     // Cargar owners
     let ownersRaw = {}
     try {
