@@ -219,7 +219,7 @@ console.log(chalk.red(`→ (${code}) › Cierra la session Principal.`));
 }
 console.log(chalk.yellow("→ Reconectando el Bot Principal..."));
 await global.reloadHandler(true).catch(console.error)
-}};
+};
 process.on('uncaughtException', console.error);
 let isInit = true;
 let handler = await import('./configuraciones/manejador.js')
