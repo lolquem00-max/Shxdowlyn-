@@ -55,7 +55,7 @@ var handler = async (m, { conn, text }) => {
     let messager = stdout.toString()
     if (messager.includes('👑 Ya está cargada la actualización.')) messager = '👑 Los datos ya están actualizados a la última versión.'
     if (messager.includes('👑 Actualizando.')) messager = '👾 Procesando, espere un momento mientras me actualizo.\n\n' + stdout.toString()
-    try { await m.react?.('✓') } catch {}
+    try { await m.react?.('✓') } catch (e) {}
     return conn.reply(m.chat, messager, m)
   } catch (e) {
     // Manejo alternativo (status en caso de conflictos, etc.)
