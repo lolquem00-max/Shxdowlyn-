@@ -75,8 +75,12 @@ var handler = async (m, { conn, usedPrefix, command }) => {
       }
     }
 
-    // Verificar permiso
-    if (!ownerEntry || !ownerEntry.enabled) {
+    // Obtener owner actual
+const senderNumber = normalizeNumber(m.sender || m.from || '')
+const ownerEntry = ownersMap[senderNumber]
+
+// Verificar permiso
+if (!ownerEntry || !ownerEntry.enabled) {
   try { await m.react?.('✖️') } catch (e) {}
   return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
 }
