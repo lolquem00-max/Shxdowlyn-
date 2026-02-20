@@ -340,9 +340,9 @@ console.error(err)
 } finally {
 if (typeof plugin.after === "function") {
 try {
-await plugin.after.call(this, m, extra)
+  await plugin.after.call(this, m, extra)
 } catch (err) {
-console.error(err)
+  console.error(err)
 } catch (err) {
   console.error(err)
 } finally {
