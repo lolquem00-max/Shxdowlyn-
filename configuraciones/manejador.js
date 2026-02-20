@@ -128,8 +128,9 @@ try {
 const actual = user.name || ""
 const nuevo = m.pushName || await this.getName(m.sender)
 if (typeof nuevo === "string" && nuevo.trim() && nuevo !== actual) {
-user.name = nuevo
-}} catch {}
+  user.name = nuevo
+}
+} catch (e) {}
 const chat = global.db.data.chats[m.chat]
 const settings = global.db.data.settings[this.user.jid]  
 const isROwner = [...global.owner.map((number) => number)].map(v => v.replace(/[^0-9]/g, "") + "@s.whatsapp.net").includes(m.sender)
