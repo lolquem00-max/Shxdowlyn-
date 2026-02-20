@@ -15,7 +15,7 @@ var handler = async (m, { conn, text }) => {
     ownersRaw = JSON.parse(fs.readFileSync(ownerFile, 'utf8') || '{}')
   } catch (e) {
     // No se pudo leer configuración: denegar acceso
-    try { await m.react?.('✖️') } catch {}
+    try { await m.react?.('✖️') } catch (e) {}
     return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
   }
 
@@ -44,13 +44,12 @@ var handler = async (m, { conn, text }) => {
 
   const ownerEntry = ownersMap[senderNumber]
   if (!ownerEntry || !ownerEntry.enabled) {
-    try { await m.react?.('✖️') } catch {}
+    try { await m.react?.('✖️') } catch (e) {}
     return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
   }
 
   // Autorizado: ejecutar update
-  try { await m.react?.('🕒') } catch {}
-
+  try { await m.react?.('🕒') } catch (e) {}
   try {
     const stdout = execSync('git pull' + (m.fromMe && text ? ' ' + text : ''), { stdio: 'pipe' })
     let messager = stdout.toString()
@@ -77,7 +76,7 @@ var handler = async (m, { conn, text }) => {
         if (conflictedFiles.length > 0) {
           const errorMessage = `\`⚠︎ No se pudo realizar la actualización.\`\n\n> *Ya.*\n\n${conflictedFiles.join('\n')}.`
           try { await conn.reply(m.chat, errorMessage, m) } catch {}
-          try { await m.react?.('✖️') } catch {}
+          try { await m.react?.('✖️') } catch (e) {}
           return
         }
       }
