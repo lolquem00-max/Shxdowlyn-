@@ -343,8 +343,8 @@ try {
 await plugin.after.call(this, m, extra)
 } catch (err) {
 console.error(err)
-}}}}}} catch (err) {
-console.error(err)
+} catch (err) {
+  console.error(err)
 } finally {
 if (opts["queque"] && m.text) {
 const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
