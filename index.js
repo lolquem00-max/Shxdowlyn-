@@ -83,6 +83,11 @@ global.db.chain = chain(global.db.data);
 };
 loadDatabase(); 
 
+global.sessions = 'sessions'
+
+if (!fs.existsSync('./sessions')) {
+  fs.mkdirSync('./sessions')
+}
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.sessions)
 const msgRetryCounterMap = new Map()
 const msgRetryCounterCache = new NodeCache({ stdTTL: 0, checkperiod: 0 })
