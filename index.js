@@ -350,7 +350,7 @@ filenames.forEach(file => {
 const filePath = join(tmpDir, file)
 unlinkSync(filePath)})
 console.log(chalk.gray(`→ Archivos de la carpeta temporal eliminados`))
-} catch {
+} catch (e) {
 console.log(chalk.gray(`→ Los archivos de la carpeta temporal no se pudieron eliminar`));
 }}, 30 * 1000) 
 _quickTest().catch(console.error)
