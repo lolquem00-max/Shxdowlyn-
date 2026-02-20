@@ -76,14 +76,10 @@ var handler = async (m, { conn, usedPrefix, command }) => {
     }
 
     // Verificar permiso
-    const senderNumber = normalizeNumber(m.sender || m.from || '')
-    const ownerEntry = ownersMap[senderNumber]
     if (!ownerEntry || !ownerEntry.enabled) {
   try { await m.react?.('✖️') } catch (e) {}
+  return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
 }
-      return conn.reply(m.chat, '* No puedes ejecutar este comando ya que no eres owner.', m)
-    }
-
     // Buscar archivos a revisar (todo el bot)
     // Puedes ajustar las extensiones si quieres revisar otros tipos
     const filesToCheck = walkDir(projectRoot, ['.js', '.mjs', '.cjs', '.json'])
