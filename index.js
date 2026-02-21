@@ -354,25 +354,26 @@ console.log(chalk.gray(`→ Archivos de la carpeta temporal eliminados`))
 console.log(chalk.gray(`→ Los archivos de la carpeta temporal no se pudieron eliminar`));
 }}, 30 * 1000) 
 _quickTest().catch(console.error)
+
 async function isValidPhoneNumber(number) {
-try {
-number = number.replace(/\s+/g, '')
-if (number.startsWith('+521')) {
-number = number.replace('+521', '+52');
-} else if (number.startsWith('+52') && number[4] === '1') {
-number = number.replace('+52 1', '+52');
+  try {
+    number = number.replace(/\s+/g, '')
+    if (number.startsWith('+521')) {
+      number = number.replace('+521', '+52')
+    } else if (number.startsWith('+52') && number[4] === '1') {
+      number = number.replace('+52 1', '+52')
+    }
+    const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
+    return phoneUtil.isValidNumber(parsedNumber)
+  } catch (error) {
+    return false
+  }
 }
-const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
-return phoneUtil.isValidNumber(parsedNumber)
-} catch (error) {
-return false
-}}
 
 async function joinChannels(sock) {
   for (const value of Object.values(global.ch)) {
     if (typeof value === 'string' && value.endsWith('@newsletter')) {
       await sock.newsletterFollow(value).catch(() => {})
-     }
-   }
- }
+    }
+  }
 }
