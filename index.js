@@ -6,13 +6,22 @@ import pkg from 'google-libphonenumber';
 const { PhoneNumberUtil } = pkg;
 const phoneUtil = PhoneNumberUtil.getInstance();
 
-import { makeWASocket, useMultiFileAuthState, jidNormalizedUser, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import { 
+  makeWASocket, 
+  useMultiFileAuthState, 
+  jidNormalizedUser, 
+  fetchLatestBaileysVersion, 
+  makeCacheableSignalKeyStore 
+} from '@whiskeysockets/baileys';
+
 import { Low, JSONFile } from 'lowdb';
 import NodeCache from 'node-cache';
+import Pino from 'pino';
 import syntaxerror from 'syntax-error';
 
+// Interfaces
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const question = (texto) => new Promise(resolve => rl.question(texto, resolve));
+const question = texto => new Promise(resolve => rl.question(texto, resolve));
 
 // Carpeta de sesiones
 const sessionsFolder = 'sessions';
@@ -57,18 +66,21 @@ export async function startBot() {
     }
   }
 
+  // Logger compatible
+  const logger = Pino({ level: 'silent' });
+
   // Configuración del socket
   const { version } = await fetchLatestBaileysVersion();
   const msgRetryCounterCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
   const userDevicesCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
 
   const connectionOptions = {
-    logger: { info() {}, error() {}, debug() {} },
+    logger,
     printQRInTerminal: opcion === '1' || methodCodeQR,
     browser: ["Shxdowlyn", "Chrome", "1.0.0"],
     auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, { info: () => {}, error: () => {} })
+      keys: makeCacheableSignalKeyStore(state.keys, logger.child({ level: 'fatal' }))
     },
     version,
     msgRetryCounterCache,
@@ -78,7 +90,7 @@ export async function startBot() {
   const conn = makeWASocket(connectionOptions);
   conn.ev.on('creds.update', saveCreds);
 
-  // Si eligió código de 8 dígitos
+  // Código de 8 dígitos
   if (opcion === '2' || methodCode) {
     let phoneNumber;
     do {
@@ -115,8 +127,8 @@ export async function startBot() {
   const comandoFolder = join(process.cwd(), './comandos');
   global.plugins = {};
   global.comandos = {};
-
   const comandoFilter = filename => /.js$/.test(filename);
+
   async function filesInit() {
     for (const filename of readdirSync(comandoFolder).filter(comandoFilter)) {
       try {
@@ -132,7 +144,7 @@ export async function startBot() {
   }
   await filesInit();
 
-  // Limpieza carpeta temporal cada 30s
+  // Limpieza carpeta temporal
   setInterval(() => {
     const tmpDir = join(process.cwd(), 'temporal');
     if (!existsSync(tmpDir)) return;
