@@ -355,8 +355,9 @@ if (!opts["noprint"]) await (await import("../comandos/configuraciones/mensajes.
 console.warn(err)
 console.log(m.message)
 }
-
 }
+} catch (err) {
+  console.error(err)
 }
 global.dfail = (type, m, conn) => {
   const msg = {
