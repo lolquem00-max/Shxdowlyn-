@@ -355,25 +355,60 @@ console.log(chalk.gray(`→ Los archivos de la carpeta temporal no se pudieron e
 }}, 30 * 1000) 
 _quickTest().catch(console.error)
 
+// ===============================================
+// Bloque de ingreso de número de WhatsApp
+// ===============================================
+
 async function isValidPhoneNumber(number) {
   try {
     number = number.replace(/\s+/g, '')
+
     if (number.startsWith('+521')) {
       number = number.replace('+521', '+52')
     } else if (number.startsWith('+52') && number[4] === '1') {
       number = number.replace('+52 1', '+52')
     }
+
     const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
     return phoneUtil.isValidNumber(parsedNumber)
+
   } catch (error) {
     return false
   }
 }
 
-async function joinChannels(sock) {
-  for (const value of Object.values(global.ch)) {
-    if (typeof value === 'string' && value.endsWith('@newsletter')) {
-      await sock.newsletterFollow(value).catch(() => {})
+if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
+  if (opcion === '2' || methodCode) {
+    opcion = '2'
+
+    if (!conn.authState.creds.registered) {
+      let addNumber
+      if (!!phoneNumber) {
+        addNumber = phoneNumber.replace(/[^0-9]/g, '')
+      } else {
+        do {
+          phoneNumber = await question(
+            chalk.bgBlack(
+              chalk.bold.greenBright(`[ SHXDOWLYN 🐢 ]  Por favor, Ingrese el número de WhatsApp.\n${chalk.bold.magentaBright('---> ')}`
+            )
+          ))
+          phoneNumber = phoneNumber.replace(/\D/g,'')
+          if (!phoneNumber.startsWith('+')) {
+            phoneNumber = `+${phoneNumber}`
+          }
+        } while (!await isValidPhoneNumber(phoneNumber))
+        
+        rl.close()
+        addNumber = phoneNumber.replace(/\D/g, '')
+        setTimeout(async () => {
+          let codeBot = await conn.requestPairingCode(addNumber)
+          codeBot = codeBot.match(/.{1,4}/g)?.join("-") || codeBot
+          console.log(
+            chalk.bold.white(chalk.bgMagenta(`[ 🫐 ]  Código:`)),
+            chalk.bold.white(chalk.white(codeBot))
+          )
+        }, 3000)
+      }
     }
   }
 }
