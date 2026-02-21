@@ -2,6 +2,7 @@ import fs, { readdirSync, unlinkSync, existsSync, mkdirSync } from 'fs';
 import path, { join } from 'path';
 import readline from 'readline';
 import chalk from 'chalk';
+import { handler } from './configuraciones/manejador.js'
 import qrcode from 'qrcode-terminal';
 import pkg from 'google-libphonenumber';
 const { PhoneNumberUtil } = pkg;
@@ -133,7 +134,15 @@ async function startBot() {
     }
   });
 
-  return conn;
+  conn.ev.on('messages.upsert', async (chatUpdate) => {
+  try {
+    await handler.call(conn, chatUpdate)
+  } catch (err) {
+    console.error(err)
+  }
+})
+
+return conn;
 }
 
 // Iniciar bot
