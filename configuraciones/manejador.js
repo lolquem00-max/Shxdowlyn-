@@ -389,5 +389,3 @@ watchFile(file, async () => {
   console.log(chalk.magenta("Se actualizo 'handler.js'"))
   if (global.reloadHandler) console.log(await global.reloadHandler())
 })
-
-}
