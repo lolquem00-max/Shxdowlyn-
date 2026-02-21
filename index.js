@@ -5,17 +5,14 @@ import chalk from 'chalk';
 import pkg from 'google-libphonenumber';
 const { PhoneNumberUtil } = pkg;
 const phoneUtil = PhoneNumberUtil.getInstance();
+
 import { makeWASocket, useMultiFileAuthState, jidNormalizedUser, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
 import { Low, JSONFile } from 'lowdb';
 import NodeCache from 'node-cache';
 import syntaxerror from 'syntax-error';
 
-const phoneUtil = PhoneNumberUtil.getInstance();
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (texto) => new Promise(resolve => rl.question(texto, resolve));
-
-global.__dirname = path.dirname;
-global.__filename = (p) => p;
 
 // Carpeta de sesiones
 const sessionsFolder = 'sessions';
@@ -115,7 +112,7 @@ export async function startBot() {
   });
 
   // Plugins y comandos
-  const comandoFolder = join(__dirname(), './comandos');
+  const comandoFolder = join(process.cwd(), './comandos');
   global.plugins = {};
   global.comandos = {};
 
@@ -137,7 +134,7 @@ export async function startBot() {
 
   // Limpieza carpeta temporal cada 30s
   setInterval(() => {
-    const tmpDir = join(__dirname(), 'temporal');
+    const tmpDir = join(process.cwd(), 'temporal');
     if (!existsSync(tmpDir)) return;
     readdirSync(tmpDir).forEach(file => unlinkSync(join(tmpDir, file)));
     console.log(chalk.gray("→ Archivos temporales eliminados"));
