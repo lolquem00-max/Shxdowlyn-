@@ -85,8 +85,8 @@ loadDatabase();
 
 global.sessions = 'sessions'
 
-if (!fs.existsSync('./sessions')) {
-  fs.mkdirSync('./sessions')
+if (!fs.existsSync(`./${global.sessions}`)) {
+  fs.mkdirSync(`./${global.sessions}`, { recursive: true })
 }
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.sessions)
 const msgRetryCounterMap = new Map()
