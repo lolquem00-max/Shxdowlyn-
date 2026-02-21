@@ -382,5 +382,3 @@ watchFile(file, async () => {
 })
 
 }
-
-}
