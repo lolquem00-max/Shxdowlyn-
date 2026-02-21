@@ -5,21 +5,9 @@ import chalk from 'chalk';
 import pkg from 'google-libphonenumber';
 const { PhoneNumberUtil } = pkg;
 const phoneUtil = PhoneNumberUtil.getInstance();
-
-import { 
-  makeWASocket, 
-  useMultiFileAuthState, 
-  jidNormalizedUser, 
-  fetchLatestBaileysVersion, 
-  makeCacheableSignalKeyStore 
-} from '@whiskeysockets/baileys';
-
+import { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
 import { Low, JSONFile } from 'lowdb';
 import NodeCache from 'node-cache';
-
-// Readline
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const question = (texto) => new Promise(resolve => rl.question(texto, resolve));
 
 // Carpeta de sesiones
 const sessionsFolder = 'sessions';
@@ -30,7 +18,7 @@ global.db = new Low(new JSONFile('database.json'));
 await global.db.read();
 global.db.data ||= { users: {}, chats: {}, settings: {} };
 
-// Validar número
+// Función para validar número
 async function isValidPhoneNumber(number) {
   try {
     number = number.replace(/\s+/g, '');
@@ -41,82 +29,90 @@ async function isValidPhoneNumber(number) {
   } catch { return false; }
 }
 
-// Iniciar bot
+// Logger mínimo compatible con Baileys
+const logger = { info() {}, error() {}, debug() {}, child() { return this; } };
+
+// Readline para input
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (texto) => new Promise(resolve => rl.question(texto, resolve));
+
 export async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState(sessionsFolder);
+  const { state, saveState, saveCreds } = await useMultiFileAuthState(sessionsFolder);
 
-  const methodCodeQR = process.argv.includes('qr');
-  const methodCode = process.argv.includes('code');
+  const methodCodeQR = process.argv.includes("qr");
+  const methodCode = process.argv.includes("code");
 
-  // Elegir QR o código 8 dígitos
+  // Selección automática o pregunta
   let opcion;
-  if (!existsSync(`./${sessionsFolder}/creds.json`)) {
-    if (methodCodeQR) opcion = '1';
-    else if (methodCode) opcion = '2';
-    else {
-      do {
-        opcion = await question(
-          chalk.bold.white("Seleccione una opción:\n") +
-          chalk.blueBright("1. Con código QR\n") +
-          chalk.cyan("2. Con código de texto de 8 dígitos\n--> ")
-        );
-        if (!/^[1-2]$/.test(opcion)) console.log(chalk.redBright("Solo se permiten 1 o 2."));
-      } while (!['1','2'].includes(opcion));
-    }
+  if (methodCodeQR) opcion = '1';
+  else if (methodCode) opcion = '2';
+  else {
+    do {
+      opcion = await question(
+        chalk.bold.white("Seleccione una opción:\n") +
+        chalk.blueBright("1. Con código QR\n") +
+        chalk.cyan("2. Con código de texto de 8 dígitos\n--> ")
+      );
+      if (!/^[1-2]$/.test(opcion)) console.log(chalk.redBright("Solo se permiten 1 o 2."));
+    } while (!['1','2'].includes(opcion));
   }
 
-  // Configuración socket
+  // Configuración del socket
   const { version } = await fetchLatestBaileysVersion();
   const msgRetryCounterCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
   const userDevicesCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
 
-  const conn = makeWASocket({
-    logger: { info() {}, error() {}, debug() {} },
-    printQRInTerminal: opcion==='1' || methodCodeQR,
+  const connectionOptions = {
+    logger,
+    printQRInTerminal: opcion==='1',
     browser: ["Shxdowlyn", "Chrome", "1.0.0"],
     auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, { info() {}, error() {} })
+      keys: makeCacheableSignalKeyStore(state.keys, logger)
     },
     version,
     msgRetryCounterCache,
     userDevicesCache
-  });
+  };
 
+  const conn = makeWASocket(connectionOptions);
   conn.ev.on('creds.update', saveCreds);
 
-  // Código de 8 dígitos
-  if (opcion==='2' || methodCode) {
+  // Si eligió código de 8 dígitos
+  if (opcion === '2') {
     let phoneNumber;
     do {
-      phoneNumber = await question(chalk.bgBlack.greenBright("[ SHXDOWLYN 🐢 ] Ingrese el número de WhatsApp:\n--> "));
-      phoneNumber = phoneNumber.replace(/\D/g,'');
+      phoneNumber = await question(
+        chalk.bgBlack.greenBright("[ SHXDOWLYN 🐢 ] Ingrese el número de WhatsApp:\n--> ")
+      );
+      phoneNumber = phoneNumber.replace(/\D/g, '');
       if (!phoneNumber.startsWith('+')) phoneNumber = `+${phoneNumber}`;
     } while (!await isValidPhoneNumber(phoneNumber));
 
-    const addNumber = phoneNumber.replace(/\D/g,'');
-    const codeBot = await conn.requestPairingCode(addNumber);
-
-    console.log(
-      chalk.bgMagenta.white.bold("[ 🫐 ] Código:"),
-      chalk.white.bold(codeBot.match(/.{1,4}/g)?.join('-') || codeBot)
-    );
-
     rl.close();
+    const addNumber = phoneNumber.replace(/\D/g, '');
+    setTimeout(async () => {
+      const codeBot = await conn.requestPairingCode(addNumber);
+      console.log(
+        chalk.bgMagenta.white.bold("[ 🫐 ] Código:"),
+        chalk.white.bold(codeBot.match(/.{1,4}/g)?.join('-') || codeBot)
+      );
+    }, 1000);
   }
 
-  // Reconexión y logs
+  // Reconexión
   conn.ev.on('connection.update', async (update) => {
     const { connection } = update;
-    if (connection==='open') console.log(chalk.green.bold(`[ 🐋 ] Conectado como: ${conn.user?.name || 'Desconocido'}`));
-    else if (connection==='close') {
+    if (connection === 'open') {
+      console.log(chalk.green.bold(`[ 🐋 ] Conectado como: ${conn.user?.name || 'Desconocido'}`));
+    } else if (connection === 'close') {
       console.log(chalk.yellow("→ Reconectando el Bot..."));
       await startBot();
     }
   });
 
-  // Plugins y comandos
-  const comandoFolder = join(process.cwd(), 'comandos');
+  // Carga de comandos
+  const comandoFolder = join('./comandos');
   global.plugins = {};
   global.comandos = {};
   const comandoFilter = filename => /.js$/.test(filename);
@@ -135,16 +131,16 @@ export async function startBot() {
   }
   await filesInit();
 
-  // Limpieza carpeta temporal cada 30s
+  // Limpieza carpeta temporal
   setInterval(() => {
-    const tmpDir = join(process.cwd(), 'temporal');
+    const tmpDir = join('./temporal');
     if (!existsSync(tmpDir)) return;
     readdirSync(tmpDir).forEach(file => unlinkSync(join(tmpDir, file)));
     console.log(chalk.gray("→ Archivos temporales eliminados"));
-  }, 30*1000);
+  }, 30 * 1000);
 
   return conn;
 }
 
-// Arrancar bot
+// Iniciar bot
 startBot().catch(console.error);
