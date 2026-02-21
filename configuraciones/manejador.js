@@ -332,6 +332,7 @@ user,
 chat,
 settings
 }
+
 if (typeof plugin.after === "function") {
   try {
     await plugin.after.call(this, m, extra)
@@ -339,23 +340,30 @@ if (typeof plugin.after === "function") {
     console.error(err)
   }
 }
+
 if (opts["queque"] && m.text) {
-const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
-if (quequeIndex !== -1)
-this.msgqueque.splice(quequeIndex, 1)
+  const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
+  if (quequeIndex !== -1)
+    this.msgqueque.splice(quequeIndex, 1)
 }
-let user, stats = global.db.data.stats
-if (m) {
-if (m.sender && (user = global.db.data.users[m.sender])) {
-user.exp += m.exp
-}}
+
+let stats = global.db.data.stats
+
+if (m && m.sender && global.db.data.users[m.sender]) {
+  global.db.data.users[m.sender].exp += m.exp
+}
+
 try {
-  if (!opts["noprint"])
+  if (!opts["noprint"]) {
     await (await import("../comandos/configuraciones/mensajes.js")).default(m, this)
+  }
 } catch (err) {
   console.warn(err)
-  console.log(m.message)
+  console.log(m?.message)
 }
+
+}  // ← cierra if (usedPrefix)
+}  // ← cierra for (const name in global.plugins)
 
 } catch (err) {
   console.error(err)
