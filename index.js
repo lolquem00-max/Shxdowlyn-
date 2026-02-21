@@ -148,7 +148,7 @@ maxIdleTimeMs: 60000,
 global.conn = makeWASocket(connectionOptions);
 conn.ev.on("creds.update", saveCreds)
 
-if (!fs.existsSync(`./${sessions}/creds.json`)) {
+if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
