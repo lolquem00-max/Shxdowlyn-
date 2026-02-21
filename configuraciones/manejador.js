@@ -360,6 +360,7 @@ try {
 } catch (err) {
   console.error(err)
 }
+}
 global.dfail = (type, m, conn) => {
   const msg = {
     rowner: `𝄄ׄㅤ𝅄🌸⃞፝͜͡⌒𝅄 Esta función solo la puede usar mi creador. ¿QUIEN TE CREES?`,
