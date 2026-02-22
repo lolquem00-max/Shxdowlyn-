@@ -1,19 +1,33 @@
 import speed from 'performance-now'
-import { spawn, exec, execSync } from 'child_process'
 
 let handler = async (m, { conn }) => {
-         let timestamp = speed();
-         let latensi = speed() - timestamp;
-         exec(`neofetch --stdout`, (error, stdout, stderr) => {
-          let child = stdout.toString("utf-8");
-          let ssd = child.replace(/Memory:/, "Ram:");
+  try {
+    const start = speed()
+    const uptime = process.uptime()
 
-          conn.reply(m.chat, `ⴵ pong ${latensi.toFixed(4)}ms`, m);
-            });
+    const end = speed()
+    const latency = (end - start).toFixed(2)
+
+    const hours = Math.floor(uptime / 3600)
+    const minutes = Math.floor((uptime % 3600) / 60)
+    const seconds = Math.floor(uptime % 60)
+
+    await conn.reply(
+      m.chat,
+      `ⴵ Pong 🏓
+⚡ Velocidad: ${latency} ms
+⏳ Activo: ${hours}h ${minutes}m ${seconds}s`,
+      m
+    )
+
+  } catch (err) {
+    console.error('Error en ping:', err)
+    await m.reply('❌ Error al medir la velocidad.')
+  }
 }
+
 handler.help = ['ping']
 handler.tags = ['info']
 handler.command = ['ping', 'p']
-handler.register = true
 
 export default handler
