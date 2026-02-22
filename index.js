@@ -13,7 +13,11 @@ import {
   DisconnectReason,
   Browsers
 } from '@whiskeysockets/baileys'
-import { Low, JSONFile } from 'lowdb'
+
+// CORRECCIÓN LOWDB
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'   // <- antes era solo 'lowdb'
+
 import NodeCache from 'node-cache'
 import P from 'pino'
 import { handler } from './configuraciones/manejador.js'
