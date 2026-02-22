@@ -36,6 +36,7 @@ if (!existsSync(sessionsFolder)) {
 /* ========= DATABASE SEGURA ========= */
 
 global.db = new Low(new JSONFile('database.json'))
+
 try {
   await global.db.read()
   if (!global.db.data) {
@@ -52,16 +53,17 @@ try {
 
 const logger = P({ level: 'silent' })
 
-/* ========= READLINE ========= */
+/* ========= CONTROL ANTI LOOP ========= */
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
+let isStarting = false
+let isReconnecting = false
 
 /* ========= START BOT ========= */
 
 async function startBot() {
+
+  if (isStarting) return
+  isStarting = true
 
   console.clear()
 
@@ -107,36 +109,51 @@ async function startBot() {
 
     if (connection === 'close') {
 
-      const statusCode = lastDisconnect?.error?.output?.statusCode
+      const statusCode =
+        lastDisconnect?.error?.output?.statusCode ??
+        lastDisconnect?.error?.output?.payload?.statusCode ??
+        lastDisconnect?.error?.output?.payload?.error ??
+        0
 
       console.log(chalk.red('Conexión cerrada. Código:'), statusCode)
 
       switch (statusCode) {
 
-        case DisconnectReason.badSession:
-          console.log(chalk.red('Sesión corrupta eliminada.'))
+        case DisconnectReason.badSession: // 428
+          console.log(chalk.red('Sesión corrupta (428). Eliminando sesión...'))
           rmSync(sessionsFolder, { recursive: true, force: true })
           process.exit()
 
-        case DisconnectReason.loggedOut:
-          console.log(chalk.red('Sesión cerrada. Escanea nuevamente.'))
+        case DisconnectReason.loggedOut: // 401
+          console.log(chalk.red('Sesión cerrada (401). Escanea nuevamente.'))
           rmSync(sessionsFolder, { recursive: true, force: true })
+          process.exit()
+
+        case DisconnectReason.connectionReplaced:
+          console.log(chalk.red('Sesión abierta en otro dispositivo. Cerrando bot.'))
           process.exit()
 
         case DisconnectReason.connectionClosed:
         case DisconnectReason.connectionLost:
         case DisconnectReason.timedOut:
-          console.log(chalk.yellow('Reconectando...'))
-          startBot()
+          if (isReconnecting) return
+          isReconnecting = true
+          console.log(chalk.yellow('Reconectando en 3 segundos...'))
+          setTimeout(() => {
+            isReconnecting = false
+            startBot()
+          }, 3000)
           break
 
         default:
-          console.log(chalk.yellow('Reintentando conexión...'))
-          startBot()
+          console.log(chalk.red('Error desconocido. Reiniciando completamente...'))
+          rmSync(sessionsFolder, { recursive: true, force: true })
+          process.exit()
       }
     }
 
     if (connection === 'open') {
+      isReconnecting = false
       console.log(chalk.green(`Conectado como ${conn.user?.name || 'Usuario'}`))
     }
   })
@@ -151,8 +168,11 @@ async function startBot() {
     }
   })
 
+  isStarting = false
   return conn
 }
+
+/* ========= START ========= */
 
 startBot().catch(err => {
   console.error(chalk.red('Error crítico:'), err)
