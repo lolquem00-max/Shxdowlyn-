@@ -7,19 +7,25 @@ class db {
         this.file = resolve(filepath)
         this.logger = console
 
-        this._load()
-
         this._jsonargs = args
         this._state = false
         this._queue = []
-        this._interval = setInterval(async () => {
-          if (!this._state && this._queue && this._queue[0]) {
-            this._state = true
-            await this[this._queue.shift()]().catch(this.logger.error)
-            this._state = false
-          }
-        }, 1000)
+        this._data = {}
 
+        this._load()
+
+        this._interval = setInterval(async () => {
+            if (!this._state && this._queue.length) {
+                this._state = true
+                const task = this._queue.shift()
+                try {
+                    await this[task]()
+                } catch (e) {
+                    this.logger.error('DB task error:', e)
+                }
+                this._state = false
+            }
+        }, 1000)
     }
 
     get data() {
@@ -27,7 +33,7 @@ class db {
     }
 
     set data(value) {
-        this._data = value
+        this._data = value || {}
         this.save()
     }
 
@@ -41,18 +47,55 @@ class db {
 
     _load() {
         try {
-          return this._data = existsSync(this.file) ? JSON.parse(readFileSync(this.file)) : {}
+            if (!existsSync(this.file)) {
+                this._data = {}
+                return this._data
+            }
+
+            const raw = readFileSync(this.file, 'utf-8')
+
+            if (!raw || raw.trim() === '') {
+                throw new Error('Database vacío')
+            }
+
+            this._data = JSON.parse(raw)
+            return this._data
+
         } catch (e) {
-          this.logger.error(e)
-          return this._data = {}
+            this.logger.error('Database corrupto. Reiniciando...', e)
+            this._data = {}
+            this._rewrite()
+            return this._data
         }
     }
 
     async _save() {
-        let dirname = _dirname(this.file)
-        if (!existsSync(dirname)) await fs.mkdir(dirname, { recursive: true })
-        await fs.writeFile(this.file, JSON.stringify(this._data, ...this._jsonargs))
-        return this.file
+        try {
+            const dirname = _dirname(this.file)
+            if (!existsSync(dirname)) {
+                await fs.mkdir(dirname, { recursive: true })
+            }
+
+            await fs.writeFile(
+                this.file,
+                JSON.stringify(this._data || {}, ...this._jsonargs)
+            )
+
+            return this.file
+        } catch (e) {
+            this.logger.error('Error guardando database:', e)
+        }
+    }
+
+    async _rewrite() {
+        try {
+            await fs.writeFile(
+                this.file,
+                JSON.stringify({}, ...this._jsonargs)
+            )
+        } catch (e) {
+            this.logger.error('Error reescribiendo database:', e)
+        }
     }
 }
 
