@@ -1,4 +1,4 @@
-import { resolve, dirname as _dirname } from 'path'
+import { resolve, dirname } from 'path'
 import _fs, { existsSync, readFileSync } from 'fs'
 const { promises: fs } = _fs
 
@@ -71,9 +71,9 @@ class db {
 
     async _save() {
         try {
-            const dirname = _dirname(this.file)
-            if (!existsSync(dirname)) {
-                await fs.mkdir(dirname, { recursive: true })
+            const dir = dirname(this.file)
+            if (!existsSync(dir)) {
+                await fs.mkdir(dir, { recursive: true })
             }
 
             await fs.writeFile(
