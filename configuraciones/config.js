@@ -23,7 +23,6 @@ global.mods = [
 
 global.botname = 'Shxdowlyn';
 global.textbot = 'Developed by Jade';
-global.moneda = 'ShadowCoins';
 global.emoji = '✨';
 global.ownername = 'Jade';
 global.version = '1.0.0';
