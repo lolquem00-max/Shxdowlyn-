@@ -3,72 +3,131 @@ import { join, resolve } from 'path'
 import { format } from 'util'
 import syntaxerror from 'syntax-error'
 import importFile from './import.js'
-import Helper from './manejador.js'
+import chalk from 'chalk'
 
-const __dirname = manejador.__dirname(import.meta)
-const manejadorFolder = manejador.__dirname(join(__dirname, './comandos/index'))
+const comandosFolder = resolve('./comandos')
 const comandosFilter = filename => /\.(mc)?js$/.test(filename)
 
+let watcher = {}
+let comandos = {}
+let comandosFolders = []
 
-let watcher, manejador, comandosFolders = []
-watcher = comandos = {}
+async function filesInit(conn) {
+  const folder = comandosFolder
 
-async function filesInit(comandosFolder = comandosFolder, comandosFilter = comandosFilter, conn) {
-    const folder = resolve(comandosFolder)
-    if (folder in watcher) return
-    comandosFolders.push(folder)
+  if (folder in watcher) {
+    console.log(chalk.yellow(`⚠️ Ya se está observando la carpeta: ${folder}`))
+    return comandos
+  }
 
-    await Promise.all(readdirSync(folder).filter(comandosFilter).map(async filename => {
-        try {
-            let file = globalThis.__filename(join(folder, filename))
-            const module = await import(file)
-            if (module) comandos[filename] = 'default' in module ? module.default : module
-        } catch (e) {
-            conn?.logger.error(e)
-            delete comandos[filename]
-        }
-    }))
+  comandosFolders.push(folder)
 
+  console.log(chalk.cyan(`📂 Iniciando carga de comandos desde: ${folder}`))
 
-    const watching = watch(folder, reload.bind(null, conn, folder, comandosFilter))
-    watching.on('close', () => deletecomandosFolder(folder, true))
-    watcher[folder] = watching
+  const files = readdirSync(folder).filter(comandosFilter)
 
-    return plugins
+  if (!files.length) {
+    console.log(chalk.red(`⚠️ No se encontraron comandos en ${folder}`))
+  }
+
+  for (const filename of files) {
+    try {
+      const filePath = join(folder, filename)
+      const module = await importFile(filePath)
+
+      if (module) {
+        comandos[filename] = module.default || module
+        console.log(chalk.green(`✅ Comando cargado: ${filename}`))
+      }
+
+    } catch (e) {
+      console.log(chalk.red(`❌ Error cargando comando: ${filename}`))
+      console.error(e)
+      delete comandos[filename]
+    }
+  }
+
+  console.log(
+    chalk.magenta(`🚀 Total comandos cargados: ${Object.keys(comandos).length}`)
+  )
+
+  const watching = watch(folder, (event, filename) => {
+    reload(conn, event, filename)
+  })
+
+  watcher[folder] = watching
+
+  console.log(chalk.blue(`👀 Watcher activo para cambios en comandos`))
+
+  return comandos
 }
 
 function deletecomandosFolder(folder, isAlreadyClosed = false) {
-    const resolved = resolve(folder)
-    if (!(resolved in watcher)) return
-    if (!isAlreadyClosed) watcher[resolved].close()
-    delete watcher[resolved]
-    comandosFolders.splice(comandosFolders.indexOf(resolved), 1)
+  const resolved = resolve(folder)
+
+  if (!(resolved in watcher)) return
+
+  if (!isAlreadyClosed) watcher[resolved].close()
+
+  delete watcher[resolved]
+
+  comandosFolders = comandosFolders.filter(f => f !== resolved)
+
+  console.log(chalk.yellow(`🛑 Watcher detenido para: ${resolved}`))
 }
 
-async function reload(conn, comandosFolder = comandosFolder, comandosFilter = comandosFilter, _ev, filename) {
-    if (comandosFilter(filename)) {
-        let dir = globalThis.__filename(join(pluginFolder, filename), true)
-        if (filename in comandos) {
-            if (existsSync(dir)) conn.logger.info(` updated comando - '${filename}'`)
-            else {
-                conn?.logger.warn(`deleted comando - '${filename}'`)
-                return delete comandos[filename]
-            }
-        } else conn?.logger.info(`new comando - '${filename}'`)
-        let err = syntaxerror(readFileSync(dir), filename, {
-            sourceType: 'module',
-            allowAwaitOutsideFunction: true
-        })
-        if (err) conn.logger.error(`syntax error while loading '${filename}'\n${format(err)}`)
-        else try {
-            const module = await importFile(globalThis.__filename(dir)).catch(console.error)
-            if (module) comandos[filename] = module
-        } catch (e) {
-            conn?.logger.error(`error require comandos '${filename}\n${format(e)}'`)
-        } finally {
-            comandos = Object.fromEntries(Object.entries(comandos).sort(([a], [b]) => a.localeCompare(b)))
-        }
-    }
+async function reload(conn, _event, filename) {
+  if (!filename) return
+  if (!comandosFilter(filename)) return
+
+  const filePath = join(comandosFolder, filename)
+
+  console.log(chalk.cyan(`🔄 Cambio detectado en: ${filename}`))
+
+  if (!existsSync(filePath)) {
+    console.log(chalk.yellow(`🗑 Comando eliminado: ${filename}`))
+    delete comandos[filename]
+    return
+  }
+
+  const err = syntaxerror(readFileSync(filePath), filename, {
+    sourceType: 'module',
+    allowAwaitOutsideFunction: true
+  })
+
+  if (err) {
+    console.log(chalk.red(`❌ Error de sintaxis en: ${filename}`))
+    console.error(format(err))
+    return
+  }
+
+  try {
+    const module = await importFile(filePath)
+    comandos[filename] = module.default || module
+
+    console.log(chalk.green(`♻️ Comando recargado correctamente: ${filename}`))
+
+  } catch (e) {
+    console.log(chalk.red(`❌ Error recargando comando: ${filename}`))
+    console.error(e)
+  }
+
+  comandos = Object.fromEntries(
+    Object.entries(comandos).sort(([a], [b]) => a.localeCompare(b))
+  )
+
+  console.log(
+    chalk.magenta(`📦 Total comandos activos: ${Object.keys(comandos).length}`)
+  )
 }
 
-export { comandosFolder, comandosFilter, comandos, watcher, comandosFolders, filesInit, deletecomandosFolder, reload }
+export {
+  comandosFolder,
+  comandosFilter,
+  comandos,
+  watcher,
+  comandosFolders,
+  filesInit,
+  deletecomandosFolder,
+  reload
+}
