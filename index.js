@@ -120,18 +120,21 @@ async function startBot() {
       switch (statusCode) {
 
         case DisconnectReason.badSession: // 428
-          console.log(chalk.red('Sesión corrupta (428). Eliminando sesión...'))
+          console.log(chalk.red('Sesión corrupta (badSession). Eliminando sesión...'))
           rmSync(sessionsFolder, { recursive: true, force: true })
           process.exit()
+          break
 
         case DisconnectReason.loggedOut: // 401
-          console.log(chalk.red('Sesión cerrada (401). Escanea nuevamente.'))
+          console.log(chalk.red('Sesión cerrada (loggedOut). Escanea nuevamente.'))
           rmSync(sessionsFolder, { recursive: true, force: true })
           process.exit()
+          break
 
         case DisconnectReason.connectionReplaced:
           console.log(chalk.red('Sesión abierta en otro dispositivo. Cerrando bot.'))
           process.exit()
+          break
 
         case DisconnectReason.connectionClosed:
         case DisconnectReason.connectionLost:
