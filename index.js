@@ -14,9 +14,9 @@ import {
   Browsers
 } from '@whiskeysockets/baileys'
 
-// CORRECCIÓN LOWDB
+// === FIX LOWDB PARA NODE 24+ ===
 import { Low } from 'lowdb'
-import { JSONFile } from 'lowdb/node'   // <- antes era solo 'lowdb'
+import { JSONFile } from 'lowdb/node'
 
 import NodeCache from 'node-cache'
 import P from 'pino'
