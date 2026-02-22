@@ -26,51 +26,37 @@ const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
 
 /* ========= FIX ESM ========= */
-
 global.__filename = (url = import.meta.url) => fileURLToPath(url)
 global.__dirname = (url = import.meta.url) => dirname(fileURLToPath(url))
 
 /* ========= SESSION FOLDER ========= */
-
 const sessionsFolder = './sessions'
 if (!existsSync(sessionsFolder)) {
   mkdirSync(sessionsFolder, { recursive: true })
 }
 
 /* ========= DATABASE SEGURA ========= */
+// Definimos los datos por defecto al crear la base
+const adapter = new JSONFile('database.json')
+global.db = new Low(adapter, { users: {}, chats: {}, settings: {} })
 
-global.db = new Low(new JSONFile('database.json'))
-
-try {
-  await global.db.read()
-  if (!global.db.data) {
-    global.db.data = { users: {}, chats: {}, settings: {} }
-    await global.db.write()
-  }
-} catch {
-  console.log(chalk.red('Base de datos corrupta. Reiniciando...'))
-  global.db.data = { users: {}, chats: {}, settings: {} }
-  await global.db.write()
-}
+await global.db.read()
+await global.db.write() // crea el archivo si no existía
 
 /* ========= LOGGER ========= */
-
 const logger = P({ level: 'silent' })
 
 /* ========= CONTROL ANTI LOOP ========= */
-
 let isStarting = false
 let isReconnecting = false
 
 /* ========= START BOT ========= */
-
 async function startBot() {
 
   if (isStarting) return
   isStarting = true
 
   console.clear()
-
   console.log(chalk.hex('#8A2BE2').bold(`
  ███████╗██╗  ██╗██╗  ██╗██████╗  ██████╗ ██╗    ██╗
  ██╔════╝██║  ██║██║ ██╔╝██╔══██╗██╔═══██╗██║    ██║
@@ -102,7 +88,6 @@ async function startBot() {
   conn.ev.on('creds.update', saveCreds)
 
   /* ========= CONNECTION UPDATE ========= */
-
   conn.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update
 
@@ -112,7 +97,6 @@ async function startBot() {
     }
 
     if (connection === 'close') {
-
       const statusCode =
         lastDisconnect?.error?.output?.statusCode ??
         lastDisconnect?.error?.output?.payload?.statusCode ??
@@ -122,14 +106,13 @@ async function startBot() {
       console.log(chalk.red('Conexión cerrada. Código:'), statusCode)
 
       switch (statusCode) {
-
-        case DisconnectReason.badSession: // 428
+        case DisconnectReason.badSession: 
           console.log(chalk.red('Sesión corrupta (badSession). Eliminando sesión...'))
           rmSync(sessionsFolder, { recursive: true, force: true })
           process.exit()
           break
 
-        case DisconnectReason.loggedOut: // 401
+        case DisconnectReason.loggedOut: 
           console.log(chalk.red('Sesión cerrada (loggedOut). Escanea nuevamente.'))
           rmSync(sessionsFolder, { recursive: true, force: true })
           process.exit()
@@ -166,7 +149,6 @@ async function startBot() {
   })
 
   /* ========= MESSAGE HANDLER ========= */
-
   conn.ev.on('messages.upsert', async (chatUpdate) => {
     try {
       await handler.call(conn, chatUpdate)
@@ -180,7 +162,6 @@ async function startBot() {
 }
 
 /* ========= START ========= */
-
 startBot().catch(err => {
   console.error(chalk.red('Error crítico:'), err)
 })
