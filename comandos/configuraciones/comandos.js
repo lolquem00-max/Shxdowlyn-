@@ -21,7 +21,6 @@ async function filesInit(conn) {
   }
 
   comandosFolders.push(folder)
-
   console.log(chalk.cyan(`📂 Iniciando carga de comandos desde: ${folder}`))
 
   const files = readdirSync(folder).filter(comandosFilter)
@@ -32,12 +31,14 @@ async function filesInit(conn) {
 
   for (const filename of files) {
     try {
+      console.log(chalk.blue(`Cargando comando: ${filename}`)) // Log agregado
+
       const filePath = join(folder, filename)
       const module = await importFile(filePath)
 
       if (module) {
         comandos[filename] = module.default || module
-        console.log(chalk.green(`✅ Comando cargado: ${filename}`))
+        console.log(chalk.green(`✅ Comando cargado correctamente: ${filename}`))
       }
 
     } catch (e) {
@@ -56,7 +57,6 @@ async function filesInit(conn) {
   })
 
   watcher[folder] = watching
-
   console.log(chalk.blue(`👀 Watcher activo para cambios en comandos`))
 
   return comandos
@@ -66,11 +66,9 @@ function deletecomandosFolder(folder, isAlreadyClosed = false) {
   const resolved = resolve(folder)
 
   if (!(resolved in watcher)) return
-
   if (!isAlreadyClosed) watcher[resolved].close()
 
   delete watcher[resolved]
-
   comandosFolders = comandosFolders.filter(f => f !== resolved)
 
   console.log(chalk.yellow(`🛑 Watcher detenido para: ${resolved}`))
@@ -81,7 +79,6 @@ async function reload(conn, _event, filename) {
   if (!comandosFilter(filename)) return
 
   const filePath = join(comandosFolder, filename)
-
   console.log(chalk.cyan(`🔄 Cambio detectado en: ${filename}`))
 
   if (!existsSync(filePath)) {
@@ -104,14 +101,13 @@ async function reload(conn, _event, filename) {
   try {
     const module = await importFile(filePath)
     comandos[filename] = module.default || module
-
     console.log(chalk.green(`♻️ Comando recargado correctamente: ${filename}`))
-
   } catch (e) {
     console.log(chalk.red(`❌ Error recargando comando: ${filename}`))
     console.error(e)
   }
 
+  // Ordenar comandos alfabéticamente
   comandos = Object.fromEntries(
     Object.entries(comandos).sort(([a], [b]) => a.localeCompare(b))
   )
