@@ -139,7 +139,7 @@ export async function handler(chatUpdate) {
         }
       }
 
-      const prefix = plugin.customPrefix || global.prefix || /^[.#]/
+      const prefix = plugin.customPrefix || global.prefix || /^[\.#]/
       const match = prefix instanceof RegExp ? prefix.exec(m.text) : null
       if (!match) continue
 
