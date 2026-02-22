@@ -1,5 +1,15 @@
-node_modules
-sessions
-database.json
+# Dependencias
+node_modules/
+
+# Sesiones y credenciales
+sessions/
 creds.json
+
+# Base de datos
+database.json
+
+# Variables de entorno
 .env
+
+# Logs
+*.log
