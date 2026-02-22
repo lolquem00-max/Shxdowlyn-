@@ -8,48 +8,46 @@ import fetch from "node-fetch"
 import ws from "ws"
 
 const isNumber = x => typeof x === "number" && !isNaN(x)
-const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
-  clearTimeout(this)
-  resolve()
-}, ms))
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 export async function handler(chatUpdate) {
   this.msgqueque = this.msgqueque || []
   this.uptime = this.uptime || Date.now()
   if (!chatUpdate) return
   this.pushMessage(chatUpdate.messages).catch(console.error)
-  let m = chatUpdate.messages[chatUpdate.messages.length - 1]
+
+  let m = chatUpdate.messages?.[chatUpdate.messages.length - 1]
   if (!m) return
-  if (global.db.data == null) await global.loadDatabase()
+
+  if (!global.db?.data) await global.loadDatabase()
 
   try {
-    m = smsg(this, m) || m
+    m = smsg(this, m)
     if (!m) return
     m.exp = 0
 
     // ----- USUARIO -----
-    const user = global.db.data.users[m.sender] || {}
+    const user = global.db.data.users[m.sender] ||= {}
     if (!("name" in user)) user.name = m.name
-    if (!("exp" in user) || !isNumber(user.exp)) user.exp = 0
-    if (!("level" in user) || !isNumber(user.level)) user.level = 0
-    if (!("health" in user) || !isNumber(user.health)) user.health = 100
+    if (!isNumber(user.exp)) user.exp = 0
+    if (!isNumber(user.level)) user.level = 0
+    if (!isNumber(user.health)) user.health = 100
     if (!("genre" in user)) user.genre = ""
     if (!("birth" in user)) user.birth = ""
     if (!("marry" in user)) user.marry = ""
     if (!("description" in user)) user.description = ""
     if (!("packstickers" in user)) user.packstickers = null
     if (!("premium" in user)) user.premium = false
-    if (!("premiumTime" in user)) user.premiumTime = 0
+    if (!isNumber(user.premiumTime)) user.premiumTime = 0
     if (!("banned" in user)) user.banned = false
     if (!("bannedReason" in user)) user.bannedReason = ""
-    if (!("commands" in user) || !isNumber(user.commands)) user.commands = 0
-    if (!("afk" in user) || !isNumber(user.afk)) user.afk = -1
+    if (!isNumber(user.commands)) user.commands = 0
+    if (!isNumber(user.afk)) user.afk = -1
     if (!("afkReason" in user)) user.afkReason = ""
-    if (!("warn" in user) || !isNumber(user.warn)) user.warn = 0
-    global.db.data.users[m.sender] = user
+    if (!isNumber(user.warn)) user.warn = 0
 
     // ----- CHAT -----
-    const chat = global.db.data.chats[m.chat] || {}
+    const chat = global.db.data.chats[m.chat] ||= {}
     if (!("isBanned" in chat)) chat.isBanned = false
     if (!("isMute" in chat)) chat.isMute = false
     if (!("welcome" in chat)) chat.welcome = false
@@ -60,16 +58,14 @@ export async function handler(chatUpdate) {
     if (!("modoadmin" in chat)) chat.modoadmin = false
     if (!("antiLink" in chat)) chat.antiLink = true
     if (!("gacha" in chat)) chat.gacha = true
-    global.db.data.chats[m.chat] = chat
 
     // ----- SETTINGS -----
-    const settings = global.db.data.settings[this.user.jid] || {}
+    const settings = global.db.data.settings[this.user.jid] ||= {}
     if (!("self" in settings)) settings.self = false
     if (!("restrict" in settings)) settings.restrict = true
     if (!("jadibotmd" in settings)) settings.jadibotmd = true
     if (!("antiPrivate" in settings)) settings.antiPrivate = false
     if (!("gponly" in settings)) settings.gponly = false
-    global.db.data.settings[this.user.jid] = settings
 
   } catch (e) {
     console.error(e)
@@ -77,73 +73,104 @@ export async function handler(chatUpdate) {
 
   if (typeof m.text !== "string") m.text = ""
 
-  // Actualizar nombre del usuario
-  try {
-    const actual = user.name || ""
-    const nuevo = m.pushName || await this.getName(m.sender)
-    if (typeof nuevo === "string" && nuevo.trim() && nuevo !== actual) user.name = nuevo
-  } catch (e) {}
-
   // ----- PERMISOS -----
-  const isROwner = [...global.owner.map(v => v.replace(/[^0-9]/g, "") + "@s.whatsapp.net")].includes(m.sender)
-  const isOwner = isROwner || m.fromMe
-  const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, "") + "@s.whatsapp.net").includes(m.sender) || user.premium === true
-  const isOwners = [this.user.jid, ...global.owner.map(v => v + "@s.whatsapp.net")].includes(m.sender)
-  if (settings.self && !isOwners) return
-  if (settings.gponly && !isOwners && !m.chat.endsWith('g.us') && !/code|p|ping|qr|estado|status|infobot|botinfo|report|reportar|invite|join|logout|suggest|help|menu/gim.test(m.text)) return
+  const ownerList = (global.owner || []).map(v =>
+    v.replace(/[^0-9]/g, "") + "@s.whatsapp.net"
+  )
 
-  if (opts["queque"] && m.text && !isPrems) {
-    const queque = this.msgqueque, time = 1000 * 5
-    const previousID = queque[queque.length - 1]
-    queque.push(m.id || m.key.id)
-    setInterval(async function () {
-      if (queque.indexOf(previousID) === -1) clearInterval(this)
-      await delay(time)
-    }, time)
-  }
+  const premsList = (global.prems || []).map(v =>
+    v.replace(/[^0-9]/g, "") + "@s.whatsapp.net"
+  )
+
+  const isROwner = ownerList.includes(m.sender)
+  const isOwner = isROwner || m.fromMe
+  const isPrems = isROwner || premsList.includes(m.sender) || global.db.data.users[m.sender].premium === true
+  const isOwners = [this.user.jid, ...ownerList].includes(m.sender)
+
+  const settings = global.db.data.settings[this.user.jid]
+
+  if (settings.self && !isOwners) return
+  if (settings.gponly && !isOwners && !m.chat.endsWith('g.us') &&
+    !/code|p|ping|qr|estado|status|infobot|botinfo|report|reportar|invite|join|logout|suggest|help|menu/gim.test(m.text)
+  ) return
 
   if (m.isBaileys) return
   m.exp += Math.ceil(Math.random() * 10)
 
+  // ----- ADMIN DETECCIÓN REAL -----
+  let isAdmin = false
+  let isBotAdmin = false
+
+  if (m.isGroup) {
+    const meta = await this.groupMetadata(m.chat).catch(() => null)
+    const participants = meta?.participants || []
+    const userData = participants.find(p => p.id === m.sender)
+    const botData = participants.find(p => p.id === this.user.jid)
+
+    isAdmin = ["admin", "superadmin"].includes(userData?.admin)
+    isBotAdmin = ["admin", "superadmin"].includes(botData?.admin)
+  }
+
   // ----- PLUGINS -----
   const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), "./comandos")
+
   for (const name in global.plugins) {
     const plugin = global.plugins[name]
     if (!plugin || plugin.disabled) continue
+
     const __filename = join(___dirname, name)
+
     if (typeof plugin.all === "function") {
-      try { await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename, user, chat, settings }) }
-      catch (err) { console.error(err) }
+      try {
+        await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
+      } catch (err) {
+        console.error(err)
+      }
     }
 
-    let strRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
-    const pluginPrefix = plugin.customPrefix || conn.prefix || global.prefix
-    const match = (pluginPrefix instanceof RegExp ? [[pluginPrefix.exec(m.text), pluginPrefix]] : Array.isArray(pluginPrefix) ? pluginPrefix.map(prefix => { const regex = prefix instanceof RegExp ? prefix : new RegExp(strRegex(prefix)); return [regex.exec(m.text), regex] }) : [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]]).find(p => p[1])
-
+    const prefix = plugin.customPrefix || global.prefix || /^[.#]/
+    const match = prefix instanceof RegExp ? prefix.exec(m.text) : null
     if (!match) continue
-    const usedPrefix = (match[0] || "")[0]
-    const noPrefix = m.text.replace(usedPrefix, "")
-    let [command, ...args] = noPrefix.trim().split(" ").filter(v => v)
-    args = args || []
-    let _args = noPrefix.trim().split(" ").slice(1)
-    let text = _args.join(" ")
-    command = (command || "").toLowerCase()
 
-    // ----- DFAlL -----
+    const usedPrefix = match[0]
+    const noPrefix = m.text.slice(usedPrefix.length).trim()
+    if (!noPrefix) continue
+
+    let [command, ...args] = noPrefix.split(/\s+/)
+    command = command.toLowerCase()
+
+    const isCommand =
+      typeof plugin.command === "string"
+        ? plugin.command === command
+        : plugin.command instanceof RegExp
+          ? plugin.command.test(command)
+          : Array.isArray(plugin.command)
+            ? plugin.command.includes(command)
+            : false
+
+    if (!isCommand) continue
+
     const fail = plugin.fail || global.dfail
+
     if (plugin.rowner && !isROwner) { fail("rowner", m, this); continue }
     if (plugin.owner && !isOwner) { fail("owner", m, this); continue }
     if (plugin.mods && !isOwner) { fail("mods", m, this); continue }
     if (plugin.premium && !isPrems) { fail("premium", m, this); continue }
     if (plugin.group && !m.isGroup) { fail("group", m, this); continue }
     if (plugin.private && m.isGroup) { fail("private", m, this); continue }
-    if (plugin.admin && m.isGroup && !user.admin) { fail("admin", m, this); continue }
-    if (plugin.botAdmin && m.isGroup && !botGroup.admin) { fail("botAdmin", m, this); continue }
+    if (plugin.admin && m.isGroup && !isAdmin) { fail("admin", m, this); continue }
+    if (plugin.botAdmin && m.isGroup && !isBotAdmin) { fail("botAdmin", m, this); continue }
     if (plugin.restrict && !isOwner) { fail("restrict", m, this); continue }
 
-    m.isCommand = true
-    m.exp += plugin.exp ? parseInt(plugin.exp) : 10
-    global.db.data.users[m.sender].commands = (global.db.data.users[m.sender].commands || 0) + 1
+    try {
+      await plugin.call(this, m, { args, command, usedPrefix })
+      m.isCommand = true
+      global.db.data.users[m.sender].commands++
+    } catch (e) {
+      console.error(e)
+    }
+
+    break
   }
 }
 
@@ -164,8 +191,8 @@ global.dfail = (type, m, conn) => {
 }
 
 // ----- WATCH FILE -----
-let file = global.__filename(import.meta.url, true)
-watchFile(file, async () => {
+const file = fileURLToPath(import.meta.url)
+watchFile(file, () => {
   unwatchFile(file)
   console.log(chalk.magenta("Se actualizó 'handler.js'"))
 })
