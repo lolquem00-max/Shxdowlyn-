@@ -1,11 +1,11 @@
-# Dependencias
+# Dependencias de Node
 node_modules/
 
-# Sesiones y credenciales
+# Sesiones y credenciales de WhatsApp
 sessions/
 creds.json
 
-# Base de datos
+# Base de datos local
 database.json
 
 # Variables de entorno
@@ -13,3 +13,25 @@ database.json
 
 # Logs
 *.log
+
+# Configuraciones locales de IDE
+.vscode/
+.idea/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Cachés de npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Archivos temporales del bot o plugins
+*.tmp
+*.bak
+*.swp
+
+# Otros archivos generados automáticamente
+.cache/
