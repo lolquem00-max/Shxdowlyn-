@@ -1,4 +1,4 @@
-import fs, { existsSync, mkdirSync } from 'fs'
+import fs, { existsSync, mkdirSync, rmSync } from 'fs'
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import readline from 'readline'
@@ -10,10 +10,12 @@ import {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  DisconnectReason
+  DisconnectReason,
+  Browsers
 } from '@whiskeysockets/baileys'
 import { Low, JSONFile } from 'lowdb'
 import NodeCache from 'node-cache'
+import P from 'pino'
 import { handler } from './configuraciones/manejador.js'
 
 const { PhoneNumberUtil } = pkg
@@ -26,62 +28,52 @@ global.__dirname = (url = import.meta.url) => dirname(fileURLToPath(url))
 
 /* ========= SESSION FOLDER ========= */
 
-const sessionsFolder = 'sessions'
-if (!existsSync(`./${sessionsFolder}`)) {
-  mkdirSync(`./${sessionsFolder}`, { recursive: true })
+const sessionsFolder = './sessions'
+if (!existsSync(sessionsFolder)) {
+  mkdirSync(sessionsFolder, { recursive: true })
 }
 
-/* ========= DATABASE ========= */
+/* ========= DATABASE SEGURA ========= */
 
 global.db = new Low(new JSONFile('database.json'))
-await global.db.read()
-if (!global.db.data) {
-  global.db.data = { users: {}, chats: {}, settings: {} }
-}
-await global.db.write()
-
-/* ========= VALID PHONE ========= */
-
-async function isValidPhoneNumber(number) {
-  try {
-    number = number.replace(/\s+/g, '')
-    if (!number.startsWith('+')) number = `+${number}`
-    const parsed = phoneUtil.parseAndKeepRawInput(number)
-    return phoneUtil.isValidNumber(parsed)
-  } catch {
-    return false
+try {
+  await global.db.read()
+  if (!global.db.data) {
+    global.db.data = { users: {}, chats: {}, settings: {} }
+    await global.db.write()
   }
+} catch {
+  console.log(chalk.red('Base de datos corrupta. Reiniciando...'))
+  global.db.data = { users: {}, chats: {}, settings: {} }
+  await global.db.write()
 }
 
 /* ========= LOGGER ========= */
 
-const logger = {
-  info() {},
-  error() {},
-  debug() {},
-  child() { return this }
-}
+const logger = P({ level: 'silent' })
+
+/* ========= READLINE ========= */
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 })
 
-const question = (text) => new Promise(res => rl.question(text, res))
-
 /* ========= START BOT ========= */
 
 async function startBot() {
 
   console.clear()
-  console.log(chalk.bgBlueBright.white.bold(`
-  ███████╗██╗  ██╗██████╗ ██╗    ██╗██╗███╗   ██╗
-  ██╔════╝██║ ██╔╝██╔══██╗██║    ██║██║████╗  ██║
-  █████╗  █████╔╝ ██████╔╝██║ █╗ ██║██║██╔██╗ ██║
-  ██╔══╝  ██╔═██╗ ██╔═══╝ ██║███╗██║██║██║╚██╗██║
-  ███████╗██║  ██╗██║     ╚███╔███╔╝██║██║ ╚████║
+
+  console.log(chalk.hex('#8A2BE2').bold(`
+ ███████╗██╗  ██╗██╗  ██╗██████╗  ██████╗ ██╗    ██╗
+ ██╔════╝██║  ██║██║ ██╔╝██╔══██╗██╔═══██╗██║    ██║
+ ███████╗███████║█████╔╝ ██████╔╝██║   ██║██║ █╗ ██║
+ ╚════██║██╔══██║██╔═██╗ ██╔═══╝ ██║   ██║██║███╗██║
+ ███████║██║  ██║██║  ██╗██║     ╚██████╔╝╚███╔███╔╝
+ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝      ╚═════╝  ╚══╝╚══╝
   `))
-  console.log(chalk.magentaBright.bold("Developed by Jade\n"))
+  console.log(chalk.magentaBright.bold(" Subzero-MD • AngularSockets Edition\n"))
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionsFolder)
   const { version } = await fetchLatestBaileysVersion()
@@ -89,49 +81,63 @@ async function startBot() {
   const conn = makeWASocket({
     logger,
     printQRInTerminal: false,
-    browser: ["Shxdowlyn", "Chrome", "1.0.0"],
+    browser: Browsers.macOS('Shxdowlyn'),
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger)
     },
     version,
     msgRetryCounterCache: new NodeCache(),
-    userDevicesCache: new NodeCache()
+    userDevicesCache: new NodeCache(),
+    syncFullHistory: false,
+    markOnlineOnConnect: true
   })
 
   conn.ev.on('creds.update', saveCreds)
 
-  /* ========= QR ========= */
+  /* ========= CONNECTION UPDATE ========= */
 
   conn.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update
 
     if (qr) {
-      console.log(chalk.yellow("\nEscanea el QR:\n"))
+      console.log(chalk.yellow('\nEscanea el QR:\n'))
       qrcode.generate(qr, { small: true })
     }
 
     if (connection === 'close') {
-      const reason = lastDisconnect?.error?.output?.statusCode
 
-      if (reason === DisconnectReason.badSession) {
-        fs.rmSync('./sessions', { recursive: true, force: true })
-        console.log('Sesión corrupta eliminada. Reinicia manualmente.')
-        process.exit()
+      const statusCode = lastDisconnect?.error?.output?.statusCode
+
+      console.log(chalk.red('Conexión cerrada. Código:'), statusCode)
+
+      switch (statusCode) {
+
+        case DisconnectReason.badSession:
+          console.log(chalk.red('Sesión corrupta eliminada.'))
+          rmSync(sessionsFolder, { recursive: true, force: true })
+          process.exit()
+
+        case DisconnectReason.loggedOut:
+          console.log(chalk.red('Sesión cerrada. Escanea nuevamente.'))
+          rmSync(sessionsFolder, { recursive: true, force: true })
+          process.exit()
+
+        case DisconnectReason.connectionClosed:
+        case DisconnectReason.connectionLost:
+        case DisconnectReason.timedOut:
+          console.log(chalk.yellow('Reconectando...'))
+          startBot()
+          break
+
+        default:
+          console.log(chalk.yellow('Reintentando conexión...'))
+          startBot()
       }
-
-      if (reason === DisconnectReason.loggedOut) {
-        console.log('Sesión cerrada. Escanea nuevamente.')
-        fs.rmSync('./sessions', { recursive: true, force: true })
-        process.exit()
-      }
-
-      console.log('Reconectando...')
-      startBot()
     }
 
     if (connection === 'open') {
-      console.log(`Conectado como ${conn.user?.name}`)
+      console.log(chalk.green(`Conectado como ${conn.user?.name || 'Usuario'}`))
     }
   })
 
@@ -141,11 +147,13 @@ async function startBot() {
     try {
       await handler.call(conn, chatUpdate)
     } catch (err) {
-      console.error('Error en handler:', err)
+      console.error(chalk.red('Error en handler:'), err)
     }
   })
 
   return conn
 }
 
-startBot().catch(console.error)
+startBot().catch(err => {
+  console.error(chalk.red('Error crítico:'), err)
+})
